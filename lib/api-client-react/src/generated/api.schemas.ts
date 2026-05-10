@@ -8,3 +8,111 @@
 export interface HealthStatus {
   status: string;
 }
+
+export type PropertyStatus =
+  (typeof PropertyStatus)[keyof typeof PropertyStatus];
+
+export const PropertyStatus = {
+  AVAILABLE: "AVAILABLE",
+  LAUNCHING_SOON: "LAUNCHING SOON",
+  SOLD_OUT: "SOLD OUT",
+} as const;
+
+export interface Property {
+  id: number;
+  title: string;
+  slug: string;
+  location: string;
+  price: string;
+  sqft: string;
+  status: PropertyStatus;
+  image: string;
+  isFeatured: boolean;
+  /** @nullable */
+  description?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type PropertyInputStatus =
+  (typeof PropertyInputStatus)[keyof typeof PropertyInputStatus];
+
+export const PropertyInputStatus = {
+  AVAILABLE: "AVAILABLE",
+  LAUNCHING_SOON: "LAUNCHING SOON",
+  SOLD_OUT: "SOLD OUT",
+} as const;
+
+export interface PropertyInput {
+  title: string;
+  slug: string;
+  location: string;
+  price: string;
+  sqft: string;
+  status: PropertyInputStatus;
+  image: string;
+  isFeatured?: boolean;
+  /** @nullable */
+  description?: string | null;
+}
+
+export type PropertyUpdateStatus =
+  (typeof PropertyUpdateStatus)[keyof typeof PropertyUpdateStatus];
+
+export const PropertyUpdateStatus = {
+  AVAILABLE: "AVAILABLE",
+  LAUNCHING_SOON: "LAUNCHING SOON",
+  SOLD_OUT: "SOLD OUT",
+} as const;
+
+export interface PropertyUpdate {
+  title?: string;
+  slug?: string;
+  location?: string;
+  price?: string;
+  sqft?: string;
+  status?: PropertyUpdateStatus;
+  image?: string;
+  isFeatured?: boolean;
+  /** @nullable */
+  description?: string | null;
+}
+
+export interface Contact {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  message: string;
+  createdAt: string;
+}
+
+export interface ContactInput {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  message: string;
+}
+
+export interface SiteSettings {
+  id: number;
+  officeAddress: string;
+  phone: string;
+  email: string;
+  whatsappNumber: string;
+  updatedAt: string;
+}
+
+export interface SiteSettingsUpdate {
+  officeAddress?: string;
+  phone?: string;
+  email?: string;
+  whatsappNumber?: string;
+}
+
+export type SearchPropertiesParams = {
+  q?: string;
+  location?: string;
+};

@@ -1,6 +1,5 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
   description: API specification
@@ -10,6 +9,14 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: properties
+    description: Property operations
+  - name: contact
+    description: Contact operations
+  - name: admin
+    description: Admin operations
+  - name: settings
+    description: Site settings operations
 paths:
   /healthz:
     get:
@@ -24,6 +31,224 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /properties:
+    get:
+      operationId: listProperties
+      tags: [properties]
+      summary: List all properties
+      responses:
+        "200":
+          description: A list of properties
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Property"
+  /properties/featured:
+    get:
+      operationId: listFeaturedProperties
+      tags: [properties]
+      summary: List featured properties
+      responses:
+        "200":
+          description: A list of featured properties
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Property"
+  /properties/{slug}:
+    get:
+      operationId: getPropertyBySlug
+      tags: [properties]
+      summary: Get a property by slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A property object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Property"
+        "404":
+          description: Property not found
+  /search:
+    get:
+      operationId: searchProperties
+      tags: [properties]
+      summary: Search properties
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+        - name: location
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Property"
+  /contact:
+    post:
+      operationId: submitContact
+      tags: [contact]
+      summary: Submit contact form
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContactInput"
+      responses:
+        "201":
+          description: Contact submission successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contact"
+  /admin/properties:
+    get:
+      operationId: adminListProperties
+      tags: [admin]
+      summary: List all properties for admin
+      responses:
+        "200":
+          description: A list of properties
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Property"
+    post:
+      operationId: adminCreateProperty
+      tags: [admin]
+      summary: Create a new property
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PropertyInput"
+      responses:
+        "201":
+          description: Property created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Property"
+  /admin/properties/{id}:
+    get:
+      operationId: adminGetProperty
+      tags: [admin]
+      summary: Get a property by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: A property object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Property"
+    patch:
+      operationId: adminUpdateProperty
+      tags: [admin]
+      summary: Update a property
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PropertyUpdate"
+      responses:
+        "200":
+          description: Property updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Property"
+    delete:
+      operationId: adminDeleteProperty
+      tags: [admin]
+      summary: Delete a property
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Property deleted
+  /admin/contacts:
+    get:
+      operationId: adminListContacts
+      tags: [admin]
+      summary: List all contact submissions
+      responses:
+        "200":
+          description: A list of contacts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Contact"
+  /settings:
+    get:
+      operationId: getSettings
+      tags: [settings]
+      summary: Get site settings
+      responses:
+        "200":
+          description: Site settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SiteSettings"
+    patch:
+      operationId: updateSettings
+      tags: [settings, admin]
+      summary: Update site settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SiteSettingsUpdate"
+      responses:
+        "200":
+          description: Settings updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SiteSettings"
+
 components:
   schemas:
     HealthStatus:
@@ -33,4 +258,81 @@ components:
           type: string
       required:
         - status
-
+    Property:
+      type: object
+      required: [id, title, slug, location, price, sqft, status, image, isFeatured, createdAt, updatedAt]
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        slug: { type: string }
+        location: { type: string }
+        price: { type: string }
+        sqft: { type: string }
+        status: { type: string, enum: [AVAILABLE, "LAUNCHING SOON", "SOLD OUT"] }
+        image: { type: string }
+        isFeatured: { type: boolean }
+        description: { type: ["string", "null"] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    PropertyInput:
+      type: object
+      required: [title, slug, location, price, sqft, status, image]
+      properties:
+        title: { type: string }
+        slug: { type: string }
+        location: { type: string }
+        price: { type: string }
+        sqft: { type: string }
+        status: { type: string, enum: [AVAILABLE, "LAUNCHING SOON", "SOLD OUT"] }
+        image: { type: string }
+        isFeatured: { type: boolean, default: false }
+        description: { type: ["string", "null"] }
+    PropertyUpdate:
+      type: object
+      properties:
+        title: { type: string }
+        slug: { type: string }
+        location: { type: string }
+        price: { type: string }
+        sqft: { type: string }
+        status: { type: string, enum: [AVAILABLE, "LAUNCHING SOON", "SOLD OUT"] }
+        image: { type: string }
+        isFeatured: { type: boolean }
+        description: { type: ["string", "null"] }
+    Contact:
+      type: object
+      required: [id, firstName, lastName, email, phone, message, createdAt]
+      properties:
+        id: { type: integer }
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: string }
+        phone: { type: string }
+        message: { type: string }
+        createdAt: { type: string, format: date-time }
+    ContactInput:
+      type: object
+      required: [firstName, lastName, email, phone, message]
+      properties:
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: string }
+        phone: { type: string }
+        message: { type: string }
+    SiteSettings:
+      type: object
+      required: [id, officeAddress, phone, email, whatsappNumber, updatedAt]
+      properties:
+        id: { type: integer }
+        officeAddress: { type: string }
+        phone: { type: string }
+        email: { type: string }
+        whatsappNumber: { type: string }
+        updatedAt: { type: string, format: date-time }
+    SiteSettingsUpdate:
+      type: object
+      properties:
+        officeAddress: { type: string }
+        phone: { type: string }
+        email: { type: string }
+        whatsappNumber: { type: string }

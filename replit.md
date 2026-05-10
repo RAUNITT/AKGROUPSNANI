@@ -1,10 +1,11 @@
-# [Project name]
+# AK Group of Real Estate
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A premium cinematic luxury real estate website for AK Group, a Tamil Nadu-based real estate developer. Features a matte-black / metallic-orange dark palette, Framer Motion animations, Canvas 2D particle field, Lenis smooth scroll, and a fully-wired Express + PostgreSQL backend with admin panel.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/api-server run dev` — run the API server (port 8080, proxied at /api)
+- `pnpm --filter @workspace/ak-realestate run dev` — run the frontend (port varies, proxied at /)
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
@@ -14,31 +15,61 @@ _Replace the heading above with the project's name, and this line with one sente
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
+- Frontend: React + Vite, Tailwind CSS, Framer Motion, Lenis, shadcn/ui, Embla Carousel
 - API: Express 5
 - DB: PostgreSQL + Drizzle ORM
 - Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
+- API codegen: Orval (from OpenAPI spec in lib/api-spec/openapi.yaml)
 - Build: esbuild (CJS bundle)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- Frontend: `artifacts/ak-realestate/src/`
+  - `components/` — NavBar, HeroSection, PropertySection, AboutSection, LogoShowcase, ContactSection, Footer, SectionDivider, ParticleCanvas
+  - `pages/Home.tsx` — main page composition
+  - `pages/Admin.tsx` — hidden admin panel at /admin
+- Backend: `artifacts/api-server/src/routes/`
+  - `properties.ts` — GET /api/properties, /api/properties/featured, /api/properties/:slug, /api/search
+  - `contact.ts` — POST /api/contact
+  - `admin.ts` — GET/POST/PATCH/DELETE /api/admin/properties, GET /api/admin/contacts
+  - `settings.ts` — GET/PATCH /api/settings
+- DB schema: `lib/db/src/schema/` (properties, contacts, site_settings tables)
+- OpenAPI spec: `lib/api-spec/openapi.yaml` (source of truth for API contract)
+- Generated hooks: `lib/api-client-react/` (do not edit manually — run codegen)
+- Generated Zod: `lib/api-zod/` (do not edit manually — run codegen)
+- Logo: `artifacts/ak-realestate/public/ak-logo.png`
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Contract-first API: OpenAPI spec drives Orval codegen for React Query hooks + Zod schemas used in both frontend and backend
+- Canvas 2D particle system instead of Three.js/WebGL (WebGL unavailable in sandboxed Replit preview)
+- Lenis smooth scroll initialized in App.tsx at root level
+- Admin panel is a hidden route (/admin) — no nav link — for internal property/contact/settings management
+- ContactSection and PropertySection pull live data from API; settings (address, phone, WhatsApp) are editable via Admin
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Hero section: word-by-word cinematic title reveal with particle canvas background and Chennai skyline SVG
+- Properties: Embla carousel of featured listings fetched live from DB, with status badges and hover effects
+- About: animated counters (years, projects, sq.ft, families) and four brand pillars
+- Logo showcase: breathing logo animation with multi-layer glow
+- Contact: form wired to /api/contact (saves to DB), WhatsApp link, live office info from settings
+- Admin (/admin): manage properties (list/create/delete), view contact submissions, update site settings
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Dark matte black (#0a0a0a) + metallic orange (primary) palette only
+- Playfair Display (serif) for headings, Inter for body
+- No emojis anywhere in code or UI
+- WebGL not available — Canvas 2D only
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- NEVER use `import React from "react"` — Vite JSX transform handles it; unused imports cause TS errors
+- SiLinkedin2 does not exist in react-icons/si — use Lucide's `Linkedin` instead
+- `ease` in Framer Motion `Variants` needs `as [number, number, number, number]` type assertion for cubic bezier arrays
+- api-server is a compiled esbuild bundle — must restart workflow after route changes
+- Codegen must be re-run after any openapi.yaml changes: `pnpm --filter @workspace/api-spec run codegen`
 
 ## Pointers
 

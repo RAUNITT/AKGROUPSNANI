@@ -14,3 +14,248 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * @summary List all properties
+ */
+export const ListPropertiesResponseItem = zod.object({
+  id: zod.number(),
+  title: zod.string(),
+  slug: zod.string(),
+  location: zod.string(),
+  price: zod.string(),
+  sqft: zod.string(),
+  status: zod.enum(["AVAILABLE", "LAUNCHING SOON", "SOLD OUT"]),
+  image: zod.string(),
+  isFeatured: zod.boolean(),
+  description: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListPropertiesResponse = zod.array(ListPropertiesResponseItem);
+
+/**
+ * @summary List featured properties
+ */
+export const ListFeaturedPropertiesResponseItem = zod.object({
+  id: zod.number(),
+  title: zod.string(),
+  slug: zod.string(),
+  location: zod.string(),
+  price: zod.string(),
+  sqft: zod.string(),
+  status: zod.enum(["AVAILABLE", "LAUNCHING SOON", "SOLD OUT"]),
+  image: zod.string(),
+  isFeatured: zod.boolean(),
+  description: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListFeaturedPropertiesResponse = zod.array(
+  ListFeaturedPropertiesResponseItem,
+);
+
+/**
+ * @summary Get a property by slug
+ */
+export const GetPropertyBySlugParams = zod.object({
+  slug: zod.coerce.string(),
+});
+
+export const GetPropertyBySlugResponse = zod.object({
+  id: zod.number(),
+  title: zod.string(),
+  slug: zod.string(),
+  location: zod.string(),
+  price: zod.string(),
+  sqft: zod.string(),
+  status: zod.enum(["AVAILABLE", "LAUNCHING SOON", "SOLD OUT"]),
+  image: zod.string(),
+  isFeatured: zod.boolean(),
+  description: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Search properties
+ */
+export const SearchPropertiesQueryParams = zod.object({
+  q: zod.coerce.string().optional(),
+  location: zod.coerce.string().optional(),
+});
+
+export const SearchPropertiesResponseItem = zod.object({
+  id: zod.number(),
+  title: zod.string(),
+  slug: zod.string(),
+  location: zod.string(),
+  price: zod.string(),
+  sqft: zod.string(),
+  status: zod.enum(["AVAILABLE", "LAUNCHING SOON", "SOLD OUT"]),
+  image: zod.string(),
+  isFeatured: zod.boolean(),
+  description: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const SearchPropertiesResponse = zod.array(SearchPropertiesResponseItem);
+
+/**
+ * @summary Submit contact form
+ */
+export const SubmitContactBody = zod.object({
+  firstName: zod.string(),
+  lastName: zod.string(),
+  email: zod.string(),
+  phone: zod.string(),
+  message: zod.string(),
+});
+
+/**
+ * @summary List all properties for admin
+ */
+export const AdminListPropertiesResponseItem = zod.object({
+  id: zod.number(),
+  title: zod.string(),
+  slug: zod.string(),
+  location: zod.string(),
+  price: zod.string(),
+  sqft: zod.string(),
+  status: zod.enum(["AVAILABLE", "LAUNCHING SOON", "SOLD OUT"]),
+  image: zod.string(),
+  isFeatured: zod.boolean(),
+  description: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const AdminListPropertiesResponse = zod.array(
+  AdminListPropertiesResponseItem,
+);
+
+/**
+ * @summary Create a new property
+ */
+export const adminCreatePropertyBodyIsFeaturedDefault = false;
+
+export const AdminCreatePropertyBody = zod.object({
+  title: zod.string(),
+  slug: zod.string(),
+  location: zod.string(),
+  price: zod.string(),
+  sqft: zod.string(),
+  status: zod.enum(["AVAILABLE", "LAUNCHING SOON", "SOLD OUT"]),
+  image: zod.string(),
+  isFeatured: zod.boolean().default(adminCreatePropertyBodyIsFeaturedDefault),
+  description: zod.string().nullish(),
+});
+
+/**
+ * @summary Get a property by id
+ */
+export const AdminGetPropertyParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const AdminGetPropertyResponse = zod.object({
+  id: zod.number(),
+  title: zod.string(),
+  slug: zod.string(),
+  location: zod.string(),
+  price: zod.string(),
+  sqft: zod.string(),
+  status: zod.enum(["AVAILABLE", "LAUNCHING SOON", "SOLD OUT"]),
+  image: zod.string(),
+  isFeatured: zod.boolean(),
+  description: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Update a property
+ */
+export const AdminUpdatePropertyParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const AdminUpdatePropertyBody = zod.object({
+  title: zod.string().optional(),
+  slug: zod.string().optional(),
+  location: zod.string().optional(),
+  price: zod.string().optional(),
+  sqft: zod.string().optional(),
+  status: zod.enum(["AVAILABLE", "LAUNCHING SOON", "SOLD OUT"]).optional(),
+  image: zod.string().optional(),
+  isFeatured: zod.boolean().optional(),
+  description: zod.string().nullish(),
+});
+
+export const AdminUpdatePropertyResponse = zod.object({
+  id: zod.number(),
+  title: zod.string(),
+  slug: zod.string(),
+  location: zod.string(),
+  price: zod.string(),
+  sqft: zod.string(),
+  status: zod.enum(["AVAILABLE", "LAUNCHING SOON", "SOLD OUT"]),
+  image: zod.string(),
+  isFeatured: zod.boolean(),
+  description: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete a property
+ */
+export const AdminDeletePropertyParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
+ * @summary List all contact submissions
+ */
+export const AdminListContactsResponseItem = zod.object({
+  id: zod.number(),
+  firstName: zod.string(),
+  lastName: zod.string(),
+  email: zod.string(),
+  phone: zod.string(),
+  message: zod.string(),
+  createdAt: zod.coerce.date(),
+});
+export const AdminListContactsResponse = zod.array(
+  AdminListContactsResponseItem,
+);
+
+/**
+ * @summary Get site settings
+ */
+export const GetSettingsResponse = zod.object({
+  id: zod.number(),
+  officeAddress: zod.string(),
+  phone: zod.string(),
+  email: zod.string(),
+  whatsappNumber: zod.string(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Update site settings
+ */
+export const UpdateSettingsBody = zod.object({
+  officeAddress: zod.string().optional(),
+  phone: zod.string().optional(),
+  email: zod.string().optional(),
+  whatsappNumber: zod.string().optional(),
+});
+
+export const UpdateSettingsResponse = zod.object({
+  id: zod.number(),
+  officeAddress: zod.string(),
+  phone: zod.string(),
+  email: zod.string(),
+  whatsappNumber: zod.string(),
+  updatedAt: zod.coerce.date(),
+});

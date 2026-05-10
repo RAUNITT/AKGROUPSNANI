@@ -2,21 +2,27 @@ import { useEffect, useState, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 
 const stats = [
-  { value: 500, suffix: "+", label: "Projects" },
-  { value: 12, suffix: "+", label: "Years" },
+  { value: 500, suffix: "+", label: "Projects Delivered" },
+  { value: 12, suffix: "+", label: "Years of Trust" },
   { value: 4, suffix: "", label: "Cities" },
-  { value: 10000, suffix: "+", label: "Happy Families" }
+  { value: 10000, suffix: "+", label: "Happy Families" },
 ];
 
-function Counter({ end, suffix }: { end: number, suffix: string }) {
+const pillars = [
+  { name: "Trust", desc: "Every project built on transparency and integrity." },
+  { name: "Elegance", desc: "Architecture that stands apart from the ordinary." },
+  { name: "Legacy", desc: "Investments designed to endure for generations." },
+];
+
+function Counter({ end, suffix }: { end: number; suffix: string }) {
   const [count, setCount] = useState(0);
-  const ref = useRef(null);
+  const ref = useRef<HTMLSpanElement>(null);
   const isInView = useInView(ref, { once: true });
 
   useEffect(() => {
     if (!isInView) return;
     let start = 0;
-    const duration = 2000;
+    const duration = 2200;
     const increment = end / (duration / 16);
     const timer = setInterval(() => {
       start += increment;
@@ -30,47 +36,79 @@ function Counter({ end, suffix }: { end: number, suffix: string }) {
     return () => clearInterval(timer);
   }, [end, isInView]);
 
-  return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
+  return (
+    <span ref={ref}>
+      {count.toLocaleString()}
+      {suffix}
+    </span>
+  );
 }
 
 export function AboutSection() {
-  const statement = "Building Tamil Nadu's future landmarks with trust, elegance, and long-term value.";
+  const statement =
+    "Building Tamil Nadu's future landmarks with trust, elegance, and long-term value.";
   const words = statement.split(" ");
 
   return (
-    <section id="about" className="py-24 bg-[#0a0a0a] border-t border-white/5">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 mb-20 items-center">
-          <div className="grid grid-cols-2 gap-8">
+    <section id="about" className="py-16 sm:py-24 bg-[#0a0a0a] relative overflow-hidden">
+      {/* Ambient */}
+      <div className="absolute bottom-0 right-0 w-[50vw] h-[60vh] bg-amber-900/8 blur-[120px] rounded-full pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        {/* Section label */}
+        <motion.p
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          className="text-[10px] sm:text-xs tracking-[0.3em] text-primary/70 uppercase mb-3 sm:mb-4"
+        >
+          Our Story
+        </motion.p>
+
+        {/* Stats + Statement grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 sm:gap-16 mb-16 sm:mb-20 items-start">
+          {/* Stats */}
+          <div className="grid grid-cols-2 gap-6 sm:gap-10">
             {stats.map((stat, idx) => (
               <motion.div
-                key={idx}
-                initial={{ opacity: 0, y: 20 }}
+                key={stat.label}
+                initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.8, delay: idx * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                className="flex flex-col"
+                transition={{
+                  duration: 0.8,
+                  delay: idx * 0.1,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+                className="flex flex-col gap-1"
+                data-testid={`stat-${stat.label.toLowerCase().replace(/\s/g, "-")}`}
               >
-                <span className="text-4xl md:text-5xl font-serif text-primary mb-2 shadow-[0_0_15px_rgba(255,140,0,0.1)] inline-block w-fit">
+                <span className="text-3xl sm:text-4xl md:text-5xl font-serif text-primary drop-shadow-[0_0_20px_rgba(255,140,0,0.3)]">
                   <Counter end={stat.value} suffix={stat.suffix} />
                 </span>
-                <span className="text-sm tracking-widest text-muted-foreground uppercase">
+                <span className="text-[10px] sm:text-xs tracking-[0.18em] text-muted-foreground uppercase">
                   {stat.label}
                 </span>
               </motion.div>
             ))}
           </div>
 
-          <div>
-            <h2 className="text-2xl md:text-4xl font-serif font-medium leading-snug text-foreground/90">
+          {/* Brand statement */}
+          <div className="flex flex-col justify-center">
+            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-serif font-medium leading-relaxed text-foreground/85">
               {words.map((word, i) => (
                 <motion.span
                   key={i}
-                  initial={{ opacity: 0, filter: "blur(4px)" }}
-                  whileInView={{ opacity: 1, filter: "blur(0px)" }}
+                  initial={{ opacity: 0, filter: "blur(6px)", y: 8 }}
+                  whileInView={{ opacity: 1, filter: "blur(0px)", y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.8, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                  className="inline-block mr-2"
+                  transition={{
+                    duration: 0.7,
+                    delay: i * 0.06,
+                    ease: [0.22, 1, 0.36, 1],
+                  }}
+                  className="inline-block mr-[0.3em]"
                 >
                   {word}
                 </motion.span>
@@ -79,18 +117,28 @@ export function AboutSection() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {["Trust", "Elegance", "Legacy"].map((pillar, idx) => (
+        {/* Pillars */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+          {pillars.map((pillar, idx) => (
             <motion.div
-              key={pillar}
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
+              key={pillar.name}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 1, delay: 0.5 + (idx * 0.2), ease: [0.22, 1, 0.36, 1] }}
-              className="relative p-8 border border-white/5 bg-white/5 backdrop-blur-sm group hover:border-primary/30 transition-colors duration-500"
+              transition={{
+                duration: 0.9,
+                delay: 0.3 + idx * 0.15,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+              className="relative p-6 sm:p-8 border border-white/[0.07] bg-white/[0.03] group hover:border-primary/30 hover:bg-white/[0.05] transition-all duration-500"
             >
-              <div className="absolute top-0 left-8 w-12 h-[2px] bg-primary group-hover:w-24 transition-all duration-500 shadow-[0_0_10px_rgba(255,140,0,0.5)]" />
-              <h3 className="text-xl font-serif tracking-widest text-foreground mt-4">{pillar.toUpperCase()}</h3>
+              <div className="absolute top-0 left-6 w-10 h-[2px] bg-gradient-to-r from-primary to-amber-400 group-hover:w-20 transition-all duration-500 shadow-[0_0_8px_rgba(255,140,0,0.4)]" />
+              <h3 className="text-base sm:text-lg font-serif tracking-[0.15em] text-foreground mt-5 mb-2">
+                {pillar.name.toUpperCase()}
+              </h3>
+              <p className="text-xs sm:text-sm text-muted-foreground/70 leading-relaxed">
+                {pillar.desc}
+              </p>
             </motion.div>
           ))}
         </div>
