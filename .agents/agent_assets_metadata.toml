@@ -1,0 +1,38 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "gofDBWAI3r6S2EhZ-Isc-"
+uri = "file://artifacts/ak-realestate/src/assets/images/prop1.png"
+type = "image"
+title = "luxury apartment interior"
+
+[[generated]]
+id = "15r57Ac9r8uYYCCO4a8DO"
+uri = "file://artifacts/ak-realestate/src/assets/images/prop2.png"
+type = "image"
+title = "modern luxury villa"
+
+[[generated]]
+id = "tRg2ThF77qBSJq0NkZJKL"
+uri = "file://artifacts/ak-realestate/src/assets/images/prop3.png"
+type = "image"
+title = "premium residential plot"
+
+[[generated]]
+id = "LPYJ9rT-Q-t0UOP2irEG_"
+uri = "file://artifacts/ak-realestate/src/assets/images/prop4.png"
+type = "image"
+title = "luxury high-rise tower"
+
+[[generated]]
+id = "T4IrplTztojisDahTLXqZ"
+uri = "file://artifacts/ak-realestate/src/assets/images/prop5.png"
+type = "image"
+title = "heritage luxury home"
+
+[[generated]]
+id = "7C7KEy8zC4SgfFH6nFm0E"
+uri = "file://artifacts/ak-realestate/src/assets/images/prop6.png"
+type = "image"
+title = "beachfront villa"
