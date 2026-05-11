@@ -1,19 +1,32 @@
 import { useState, useEffect } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 
-const NAV_LINKS = ["Properties", "About", "Contact"];
+const NAV_LINKS = [
+  { label: "Properties", hash: "#properties" },
+  { label: "About", hash: "#about" },
+  { label: "Contact", hash: "#contact" },
+];
 
 export function NavBar() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const [location] = useLocation();
+  const isHome = location === "/" || location === "";
+  const isAdmin = location.startsWith("/admin");
 
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  const href = (hash: string) => (isHome ? hash : `/${hash}`);
+
+  const handleNavClick = (hash: string) => {
+    setMenuOpen(false);
+    if (!isHome) {
+      window.location.href = `/${hash}`;
+    } else {
+      document.querySelector(hash)?.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  if (isAdmin) return null;
 
   return (
     <>
@@ -23,7 +36,7 @@ export function NavBar() {
         transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
         className="fixed top-0 left-0 right-0 z-50 border-b border-primary/15"
         style={{
-          backgroundColor: "rgba(10, 10, 10, 0.75)",
+          backgroundColor: "rgba(10, 10, 10, 0.80)",
           backdropFilter: "blur(20px) saturate(180%)",
           WebkitBackdropFilter: "blur(20px) saturate(180%)",
         }}
@@ -36,47 +49,40 @@ export function NavBar() {
               className="h-9 sm:h-11 w-auto object-contain drop-shadow-[0_0_12px_rgba(255,140,0,0.4)]"
             />
             <div className="hidden sm:flex flex-col leading-tight">
-              <span className="text-[10px] tracking-[0.25em] text-primary/80 font-medium uppercase">
-                AK Group
-              </span>
-              <span className="text-[9px] tracking-[0.15em] text-foreground/50 uppercase">
-                of Real Estate
-              </span>
+              <span className="text-[10px] tracking-[0.25em] text-primary/80 font-medium uppercase">AK Group</span>
+              <span className="text-[9px] tracking-[0.15em] text-foreground/50 uppercase">of Real Estate</span>
             </div>
           </Link>
 
-          {/* Desktop nav */}
+          {/* Desktop */}
           <div className="hidden md:flex items-center gap-10">
-            {NAV_LINKS.map((item) => (
-              <a
-                key={item}
-                href={`#${item.toLowerCase()}`}
+            {NAV_LINKS.map(({ label, hash }) => (
+              <button
+                key={label}
+                onClick={() => handleNavClick(hash)}
                 className="text-[11px] font-medium tracking-[0.2em] text-foreground/70 hover:text-primary transition-colors duration-300 uppercase"
               >
-                {item}
-              </a>
+                {label}
+              </button>
             ))}
-            <a
-              href="#contact"
+            <button
+              onClick={() => handleNavClick("#contact")}
               className="text-[11px] font-semibold tracking-[0.15em] px-5 py-2 border border-primary/50 text-primary hover:bg-primary hover:text-black transition-all duration-300 uppercase"
             >
               Enquire
-            </a>
+            </button>
           </div>
 
-          {/* Mobile hamburger */}
           <button
             className="md:hidden text-foreground/80 hover:text-primary transition-colors p-1"
             onClick={() => setMenuOpen((v) => !v)}
             aria-label="Toggle menu"
-            data-testid="button-mobile-menu"
           >
             {menuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
       </motion.nav>
 
-      {/* Mobile drawer */}
       <AnimatePresence>
         {menuOpen && (
           <motion.div
@@ -86,36 +92,30 @@ export function NavBar() {
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             className="fixed top-[56px] left-0 right-0 z-40 border-b border-primary/15"
-            style={{
-              backgroundColor: "rgba(8, 8, 8, 0.95)",
-              backdropFilter: "blur(24px)",
-              WebkitBackdropFilter: "blur(24px)",
-            }}
+            style={{ backgroundColor: "rgba(8,8,8,0.96)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}
           >
             <div className="flex flex-col px-6 py-6 gap-6">
-              {NAV_LINKS.map((item, i) => (
-                <motion.a
-                  key={item}
-                  href={`#${item.toLowerCase()}`}
+              {NAV_LINKS.map(({ label, hash }, i) => (
+                <motion.button
+                  key={label}
                   initial={{ opacity: 0, x: -12 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.06, duration: 0.3 }}
-                  className="text-sm tracking-[0.2em] text-foreground/80 hover:text-primary transition-colors uppercase"
-                  onClick={() => setMenuOpen(false)}
+                  className="text-sm tracking-[0.2em] text-foreground/80 hover:text-primary transition-colors uppercase text-left"
+                  onClick={() => handleNavClick(hash)}
                 >
-                  {item}
-                </motion.a>
+                  {label}
+                </motion.button>
               ))}
-              <motion.a
-                href="#contact"
+              <motion.button
                 initial={{ opacity: 0, x: -12 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: NAV_LINKS.length * 0.06, duration: 0.3 }}
                 className="text-sm tracking-[0.15em] font-semibold px-5 py-3 border border-primary/50 text-primary text-center uppercase"
-                onClick={() => setMenuOpen(false)}
+                onClick={() => handleNavClick("#contact")}
               >
                 Enquire Now
-              </motion.a>
+              </motion.button>
             </div>
           </motion.div>
         )}

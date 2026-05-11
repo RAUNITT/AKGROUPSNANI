@@ -1,620 +1,259 @@
-import { useState, useEffect } from "react";
-import {
-  useAdminListProperties,
-  useAdminDeleteProperty,
-  useAdminCreateProperty,
-  useAdminListContacts,
-  useGetSettings,
-  useUpdateSettings,
-} from "@workspace/api-client-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useState } from "react";
+import { useLocation } from "wouter";
+import { supabase, getAllProperties, deleteProperty, getContacts, getSettings, updateSettings } from "@/lib/supabase";
+import type { Property, SiteSettings } from "@/lib/types";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Trash2, ArrowLeft } from "lucide-react";
-
-const BLANK_PROPERTY = {
-  title: "",
-  slug: "",
-  location: "",
-  price: "",
-  sqft: "",
-  status: "AVAILABLE" as "AVAILABLE" | "LAUNCHING SOON" | "SOLD OUT",
-  image: "",
-  description: "",
-  isFeatured: true,
-};
+import { Loader2, Plus, Trash2, Pencil, ArrowLeft, LogOut } from "lucide-react";
+import { PropertyForm } from "@/components/admin/PropertyForm";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export default function Admin() {
+  const [, navigate] = useLocation();
   const { toast } = useToast();
-  const {
-    data: properties,
-    isLoading: loadingProps,
-    refetch: refetchProps,
-  } = useAdminListProperties();
-  const { data: contacts, isLoading: loadingContacts } = useAdminListContacts();
-  const {
-    data: settings,
-    isLoading: loadingSettings,
-    refetch: refetchSettings,
-  } = useGetSettings();
 
-  const deleteProperty = useAdminDeleteProperty();
-  const createProperty = useAdminCreateProperty();
-  const updateSettings = useUpdateSettings();
-
-  const [showCreate, setShowCreate] = useState(false);
-  const [newProp, setNewProp] = useState(BLANK_PROPERTY);
-
-  const [settingsForm, setSettingsForm] = useState({
-    officeAddress: "",
-    phone: "",
-    email: "",
-    whatsappNumber: "",
-  });
-
+  // Auth guard
+  const [authChecked, setAuthChecked] = useState(false);
+  const [session, setSession] = useState<any>(null);
   useEffect(() => {
-    if (settings) {
-      setSettingsForm({
-        officeAddress: settings.officeAddress,
-        phone: settings.phone,
-        email: settings.email,
-        whatsappNumber: settings.whatsappNumber,
-      });
-    }
-  }, [settings]);
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) navigate("/admin/login");
+      else { setSession(data.session); setAuthChecked(true); }
+    });
+  }, [navigate]);
 
-  const handleDeleteProperty = async (id: number) => {
-    if (confirm("Are you sure you want to delete this property?")) {
-      deleteProperty.mutate(
-        { id },
-        {
-          onSuccess: () => {
-            toast({ title: "Property deleted" });
-            refetchProps();
-          },
-          onError: () => {
-            toast({ title: "Delete failed", variant: "destructive" });
-          },
-        }
-      );
-    }
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate("/admin/login");
   };
 
-  const handleCreateProperty = (e: React.FormEvent) => {
+  // Properties
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [loadingProps, setLoadingProps] = useState(true);
+  const loadProperties = () => {
+    setLoadingProps(true);
+    getAllProperties().then(setProperties).finally(() => setLoadingProps(false));
+  };
+  useEffect(() => { if (authChecked) loadProperties(); }, [authChecked]);
+
+  // Form dialog
+  const [formOpen, setFormOpen] = useState(false);
+  const [editProp, setEditProp] = useState<Property | null>(null);
+  const openCreate = () => { setEditProp(null); setFormOpen(true); };
+  const openEdit = (p: Property) => { setEditProp(p); setFormOpen(true); };
+  const onFormSave = () => { setFormOpen(false); loadProperties(); toast({ title: editProp ? "Property updated" : "Property created" }); };
+
+  const handleDelete = async (id: string, title: string) => {
+    if (!confirm(`Delete "${title}"?`)) return;
+    try {
+      await deleteProperty(id);
+      toast({ title: "Property deleted" });
+      loadProperties();
+    } catch { toast({ title: "Delete failed", variant: "destructive" }); }
+  };
+
+  // Contacts
+  const [contacts, setContacts] = useState<any[]>([]);
+  const [loadingContacts, setLoadingContacts] = useState(false);
+  const loadContacts = () => {
+    setLoadingContacts(true);
+    getContacts().then(setContacts).finally(() => setLoadingContacts(false));
+  };
+
+  // Settings
+  const [settings, setSettings] = useState<SiteSettings | null>(null);
+  const [settingsForm, setSettingsForm] = useState({ phone: "", email: "", whatsapp: "", office_address: "" });
+  const [savingSettings, setSavingSettings] = useState(false);
+  const loadSettingsData = () => {
+    getSettings().then((s) => {
+      if (s) { setSettings(s); setSettingsForm({ phone: s.phone, email: s.email, whatsapp: s.whatsapp, office_address: s.office_address }); }
+    });
+  };
+  const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
-    createProperty.mutate(
-      { data: newProp },
-      {
-        onSuccess: () => {
-          toast({ title: "Property created" });
-          setShowCreate(false);
-          setNewProp(BLANK_PROPERTY);
-          refetchProps();
-        },
-        onError: () => {
-          toast({ title: "Create failed", variant: "destructive" });
-        },
-      }
-    );
+    setSavingSettings(true);
+    try {
+      await updateSettings(settingsForm);
+      toast({ title: "Settings saved" });
+      loadSettingsData();
+    } catch { toast({ title: "Save failed", variant: "destructive" }); }
+    finally { setSavingSettings(false); }
   };
 
-  const handleUpdateSettings = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateSettings.mutate(
-      { data: settingsForm },
-      {
-        onSuccess: () => {
-          toast({ title: "Settings updated" });
-          refetchSettings();
-        },
-        onError: () => {
-          toast({ title: "Update failed", variant: "destructive" });
-        },
-      }
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+        <Loader2 className="animate-spin text-primary" size={28} />
+      </div>
     );
-  };
-
-  const slugify = (title: string) =>
-    title
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, "")
-      .trim()
-      .replace(/\s+/g, "-");
+  }
 
   return (
     <div className="min-h-screen bg-[#050505] text-white">
       <div className="max-w-7xl mx-auto py-8 sm:py-12 px-4 sm:px-6">
+
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8 sm:mb-10">
-          <a
-            href="/"
-            className="text-muted-foreground/50 hover:text-primary transition-colors"
-          >
-            <ArrowLeft size={18} />
-          </a>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-serif font-bold tracking-wide">
-              Admin Dashboard
-            </h1>
-            <p className="text-xs text-muted-foreground/40 tracking-widest mt-0.5 uppercase">
-              AK Group of Real Estate
-            </p>
+        <div className="flex items-center justify-between mb-8 sm:mb-10">
+          <div className="flex items-center gap-4">
+            <a href="/" className="text-muted-foreground/50 hover:text-primary transition-colors">
+              <ArrowLeft size={18} />
+            </a>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-serif font-bold tracking-wide">Admin Dashboard</h1>
+              <p className="text-[10px] text-muted-foreground/40 tracking-widest uppercase mt-0.5">
+                {session?.user?.email}
+              </p>
+            </div>
           </div>
+          <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-muted-foreground/50 hover:text-red-400 text-xs gap-2">
+            <LogOut size={14} /> Sign Out
+          </Button>
         </div>
 
-        <Tabs defaultValue="properties" className="space-y-6">
-          <TabsList className="bg-white/5 border border-white/10 h-auto p-1 gap-1">
-            <TabsTrigger
-              value="properties"
-              className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs tracking-wider uppercase"
-            >
-              Properties
-            </TabsTrigger>
-            <TabsTrigger
-              value="contacts"
-              className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs tracking-wider uppercase"
-            >
-              Contacts
-            </TabsTrigger>
-            <TabsTrigger
-              value="settings"
-              className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs tracking-wider uppercase"
-            >
-              Site Settings
-            </TabsTrigger>
+        <Tabs defaultValue="properties" className="space-y-6" onValueChange={(v) => { if (v === "contacts") loadContacts(); if (v === "settings") loadSettingsData(); }}>
+          <TabsList className="bg-white/5 border border-white/10 h-auto p-1 gap-1 w-full sm:w-auto">
+            {["properties", "contacts", "settings"].map((t) => (
+              <TabsTrigger key={t} value={t} className="data-[state=active]:bg-primary data-[state=active]:text-black text-[11px] tracking-wider uppercase flex-1 sm:flex-none">
+                {t}
+              </TabsTrigger>
+            ))}
           </TabsList>
 
-          {/* PROPERTIES TAB */}
+          {/* ── PROPERTIES ─────────────────── */}
           <TabsContent value="properties">
-            <Card className="bg-white/[0.03] border-white/10 text-white">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="font-serif text-lg">
-                  Manage Properties
-                </CardTitle>
-                <Button
-                  size="sm"
-                  className="bg-primary text-black hover:bg-amber-400 rounded-none text-xs tracking-wider"
-                  onClick={() => setShowCreate(true)}
-                >
-                  <Plus size={14} className="mr-2" /> Add Property
+            <div className="border border-white/[0.07] bg-white/[0.03]">
+              <div className="flex items-center justify-between px-5 sm:px-7 py-5 border-b border-white/[0.07]">
+                <h2 className="font-serif text-lg">Properties <span className="text-muted-foreground/40 text-sm font-sans ml-2">{properties.length}</span></h2>
+                <Button size="sm" onClick={openCreate} className="bg-primary text-black hover:bg-amber-400 rounded-none text-xs tracking-wider gap-1.5">
+                  <Plus size={14} /> Add Property
                 </Button>
-              </CardHeader>
-              <CardContent>
-                {loadingProps ? (
-                  <div className="flex justify-center py-12">
-                    <Loader2 className="animate-spin text-primary" />
-                  </div>
-                ) : properties?.length === 0 ? (
-                  <p className="text-center py-12 text-muted-foreground/50 text-sm">
-                    No properties yet. Add one above.
-                  </p>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="border-white/10 hover:bg-white/5">
-                          <TableHead className="text-muted-foreground text-xs">
-                            Title
-                          </TableHead>
-                          <TableHead className="text-muted-foreground text-xs hidden sm:table-cell">
-                            Location
-                          </TableHead>
-                          <TableHead className="text-muted-foreground text-xs hidden md:table-cell">
-                            Price
-                          </TableHead>
-                          <TableHead className="text-muted-foreground text-xs">
-                            Status
-                          </TableHead>
-                          <TableHead className="text-muted-foreground text-xs text-right">
-                            Actions
-                          </TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {properties?.map((prop: any) => (
-                          <TableRow
-                            key={prop.id}
-                            className="border-white/10 hover:bg-white/5"
-                          >
-                            <TableCell className="font-medium text-sm">
-                              {prop.title}
-                            </TableCell>
-                            <TableCell className="text-sm hidden sm:table-cell text-muted-foreground">
-                              {prop.location}
-                            </TableCell>
-                            <TableCell className="text-sm hidden md:table-cell text-muted-foreground">
-                              {prop.price}
-                            </TableCell>
-                            <TableCell>
-                              <span
-                                className={`text-[10px] tracking-wider px-2 py-0.5 border ${
-                                  prop.status === "AVAILABLE"
-                                    ? "text-emerald-400 border-emerald-400/30 bg-emerald-400/10"
-                                    : prop.status === "LAUNCHING SOON"
-                                    ? "text-primary border-primary/30 bg-primary/10"
-                                    : "text-foreground/40 border-foreground/20"
-                                }`}
-                              >
-                                {prop.status}
-                              </span>
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="text-red-400 hover:text-red-300 hover:bg-red-400/10 h-8 w-8"
-                                onClick={() => handleDeleteProperty(prop.id)}
-                              >
-                                <Trash2 size={14} />
+              </div>
+
+              {loadingProps ? (
+                <div className="flex justify-center py-16"><Loader2 className="animate-spin text-primary" /></div>
+              ) : properties.length === 0 ? (
+                <p className="text-center py-16 text-muted-foreground/40 text-sm">No properties yet. Add one to get started.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-white/[0.07] hover:bg-transparent">
+                        {["Title", "Location", "Price", "Status", "Featured", ""].map((h) => (
+                          <TableHead key={h} className="text-muted-foreground/50 text-[10px] tracking-widest uppercase">{h}</TableHead>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {properties.map((p) => (
+                        <TableRow key={p.id} className="border-white/[0.05] hover:bg-white/[0.02]">
+                          <TableCell className="font-medium text-sm max-w-[180px] truncate">{p.title}</TableCell>
+                          <TableCell className="text-muted-foreground text-sm hidden sm:table-cell">{p.location}</TableCell>
+                          <TableCell className="text-muted-foreground text-sm hidden md:table-cell">{p.price}</TableCell>
+                          <TableCell>
+                            <span className="text-[9px] tracking-widest px-2 py-0.5 border border-primary/30 text-primary bg-primary/10">{p.status}</span>
+                          </TableCell>
+                          <TableCell className="hidden sm:table-cell">
+                            <span className={`text-[9px] ${p.is_featured ? "text-emerald-400" : "text-muted-foreground/40"}`}>
+                              {p.is_featured ? "✓ Yes" : "No"}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white hover:bg-white/10" onClick={() => openEdit(p)}>
+                                <Pencil size={13} />
                               </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* CONTACTS TAB */}
-          <TabsContent value="contacts">
-            <Card className="bg-white/[0.03] border-white/10 text-white">
-              <CardHeader>
-                <CardTitle className="font-serif text-lg">
-                  Contact Submissions
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {loadingContacts ? (
-                  <div className="flex justify-center py-12">
-                    <Loader2 className="animate-spin text-primary" />
-                  </div>
-                ) : contacts?.length === 0 ? (
-                  <p className="text-center py-12 text-muted-foreground/50 text-sm">
-                    No submissions yet.
-                  </p>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="border-white/10">
-                          <TableHead className="text-muted-foreground text-xs">
-                            Name
-                          </TableHead>
-                          <TableHead className="text-muted-foreground text-xs hidden sm:table-cell">
-                            Email
-                          </TableHead>
-                          <TableHead className="text-muted-foreground text-xs hidden md:table-cell">
-                            Phone
-                          </TableHead>
-                          <TableHead className="text-muted-foreground text-xs hidden lg:table-cell">
-                            Message
-                          </TableHead>
-                          <TableHead className="text-muted-foreground text-xs">
-                            Date
-                          </TableHead>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-red-400/70 hover:text-red-400 hover:bg-red-400/10" onClick={() => handleDelete(p.id, p.title)}>
+                                <Trash2 size={13} />
+                              </Button>
+                            </div>
+                          </TableCell>
                         </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {contacts?.map((c: any) => (
-                          <TableRow
-                            key={c.id}
-                            className="border-white/10 hover:bg-white/5"
-                          >
-                            <TableCell className="text-sm font-medium">
-                              {c.firstName} {c.lastName}
-                            </TableCell>
-                            <TableCell className="text-sm hidden sm:table-cell text-muted-foreground">
-                              {c.email}
-                            </TableCell>
-                            <TableCell className="text-sm hidden md:table-cell text-muted-foreground">
-                              {c.phone}
-                            </TableCell>
-                            <TableCell className="hidden lg:table-cell text-sm text-muted-foreground max-w-xs truncate">
-                              {c.message}
-                            </TableCell>
-                            <TableCell className="text-xs text-muted-foreground/60">
-                              {new Date(c.createdAt).toLocaleDateString()}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </div>
           </TabsContent>
 
-          {/* SETTINGS TAB */}
+          {/* ── CONTACTS ───────────────────── */}
+          <TabsContent value="contacts">
+            <div className="border border-white/[0.07] bg-white/[0.03]">
+              <div className="px-5 sm:px-7 py-5 border-b border-white/[0.07]">
+                <h2 className="font-serif text-lg">Contact Submissions</h2>
+              </div>
+              {loadingContacts ? (
+                <div className="flex justify-center py-16"><Loader2 className="animate-spin text-primary" /></div>
+              ) : contacts.length === 0 ? (
+                <p className="text-center py-16 text-muted-foreground/40 text-sm">No submissions yet.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-white/[0.07] hover:bg-transparent">
+                        {["Name", "Email", "Phone", "Message", "Date"].map((h) => (
+                          <TableHead key={h} className="text-muted-foreground/50 text-[10px] tracking-widest uppercase">{h}</TableHead>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {contacts.map((c) => (
+                        <TableRow key={c.id} className="border-white/[0.05] hover:bg-white/[0.02]">
+                          <TableCell className="text-sm font-medium">{c.first_name} {c.last_name}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground hidden sm:table-cell">{c.email}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground hidden md:table-cell">{c.phone}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground max-w-xs truncate hidden lg:table-cell">{c.message}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground/50">{new Date(c.created_at).toLocaleDateString()}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          {/* ── SETTINGS ───────────────────── */}
           <TabsContent value="settings">
-            <Card className="bg-white/[0.03] border-white/10 text-white">
-              <CardHeader>
-                <CardTitle className="font-serif text-lg">
-                  Site Settings
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {loadingSettings ? (
-                  <div className="flex justify-center py-12">
-                    <Loader2 className="animate-spin text-primary" />
+            <div className="border border-white/[0.07] bg-white/[0.03] p-5 sm:p-8 max-w-lg">
+              <h2 className="font-serif text-lg mb-6">Site Settings</h2>
+              <form onSubmit={handleSaveSettings} className="space-y-5">
+                {[
+                  { key: "office_address", label: "Office Address" },
+                  { key: "phone", label: "Phone Number" },
+                  { key: "email", label: "Email Address" },
+                  { key: "whatsapp", label: "WhatsApp Number (with country code, no +)" },
+                ].map(({ key, label }) => (
+                  <div key={key} className="space-y-1.5">
+                    <Label className="text-[10px] tracking-widest uppercase text-muted-foreground/60">{label}</Label>
+                    <Input
+                      value={settingsForm[key as keyof typeof settingsForm]}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, [key]: e.target.value })}
+                      className="bg-white/5 border-white/10 focus-visible:ring-primary rounded-none"
+                    />
                   </div>
-                ) : (
-                  <form
-                    onSubmit={handleUpdateSettings}
-                    className="space-y-5 max-w-lg"
-                  >
-                    <div className="space-y-2">
-                      <Label className="text-xs tracking-widest uppercase text-muted-foreground">
-                        Office Address
-                      </Label>
-                      <Input
-                        value={settingsForm.officeAddress}
-                        onChange={(e) =>
-                          setSettingsForm({
-                            ...settingsForm,
-                            officeAddress: e.target.value,
-                          })
-                        }
-                        className="bg-white/5 border-white/10 focus-visible:ring-primary rounded-none"
-                      />
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label className="text-xs tracking-widest uppercase text-muted-foreground">
-                          Phone
-                        </Label>
-                        <Input
-                          value={settingsForm.phone}
-                          onChange={(e) =>
-                            setSettingsForm({
-                              ...settingsForm,
-                              phone: e.target.value,
-                            })
-                          }
-                          className="bg-white/5 border-white/10 focus-visible:ring-primary rounded-none"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-xs tracking-widest uppercase text-muted-foreground">
-                          Email
-                        </Label>
-                        <Input
-                          value={settingsForm.email}
-                          onChange={(e) =>
-                            setSettingsForm({
-                              ...settingsForm,
-                              email: e.target.value,
-                            })
-                          }
-                          className="bg-white/5 border-white/10 focus-visible:ring-primary rounded-none"
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs tracking-widest uppercase text-muted-foreground">
-                        WhatsApp Number
-                      </Label>
-                      <Input
-                        value={settingsForm.whatsappNumber}
-                        onChange={(e) =>
-                          setSettingsForm({
-                            ...settingsForm,
-                            whatsappNumber: e.target.value,
-                          })
-                        }
-                        className="bg-white/5 border-white/10 focus-visible:ring-primary rounded-none"
-                      />
-                    </div>
-                    <Button
-                      type="submit"
-                      className="bg-primary text-black hover:bg-amber-400 rounded-none text-xs tracking-wider"
-                      disabled={updateSettings.isPending}
-                    >
-                      {updateSettings.isPending && (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      )}
-                      Save Settings
-                    </Button>
-                  </form>
-                )}
-              </CardContent>
-            </Card>
+                ))}
+                <Button type="submit" disabled={savingSettings} className="bg-primary text-black hover:bg-amber-400 rounded-none text-xs tracking-wider mt-2">
+                  {savingSettings && <Loader2 className="animate-spin mr-2 h-4 w-4" />}
+                  Save Settings
+                </Button>
+              </form>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
 
-      {/* CREATE PROPERTY DIALOG */}
-      <Dialog open={showCreate} onOpenChange={setShowCreate}>
-        <DialogContent className="bg-[#0d0d0d] border-white/10 text-white max-w-lg">
+      {/* Property Form Dialog */}
+      <Dialog open={formOpen} onOpenChange={setFormOpen}>
+        <DialogContent className="bg-[#0d0d0d] border-white/10 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="font-serif text-xl">
-              Add New Property
-            </DialogTitle>
+            <DialogTitle className="font-serif text-xl">{editProp ? "Edit Property" : "Add New Property"}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleCreateProperty}>
-            <div className="space-y-4 py-2">
-              <div className="space-y-1.5">
-                <Label className="text-xs tracking-widest uppercase text-muted-foreground">
-                  Title *
-                </Label>
-                <Input
-                  value={newProp.title}
-                  onChange={(e) => {
-                    const title = e.target.value;
-                    setNewProp({
-                      ...newProp,
-                      title,
-                      slug: slugify(title),
-                    });
-                  }}
-                  required
-                  placeholder="The Zenith Residences"
-                  className="bg-white/5 border-white/10 focus-visible:ring-primary rounded-none"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label className="text-xs tracking-widest uppercase text-muted-foreground">
-                    Slug *
-                  </Label>
-                  <Input
-                    value={newProp.slug}
-                    onChange={(e) =>
-                      setNewProp({ ...newProp, slug: e.target.value })
-                    }
-                    required
-                    placeholder="zenith-residences"
-                    className="bg-white/5 border-white/10 focus-visible:ring-primary rounded-none"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs tracking-widest uppercase text-muted-foreground">
-                    Status *
-                  </Label>
-                  <Select
-                    value={newProp.status}
-                    onValueChange={(v) =>
-                      setNewProp({
-                        ...newProp,
-                        status: v as typeof newProp.status,
-                      })
-                    }
-                  >
-                    <SelectTrigger className="bg-white/5 border-white/10 focus:ring-primary rounded-none">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#111] border-white/10 text-white">
-                      <SelectItem value="AVAILABLE">Available</SelectItem>
-                      <SelectItem value="LAUNCHING SOON">
-                        Launching Soon
-                      </SelectItem>
-                      <SelectItem value="SOLD OUT">Sold Out</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs tracking-widest uppercase text-muted-foreground">
-                  Location *
-                </Label>
-                <Input
-                  value={newProp.location}
-                  onChange={(e) =>
-                    setNewProp({ ...newProp, location: e.target.value })
-                  }
-                  required
-                  placeholder="Chennai, Tamil Nadu"
-                  className="bg-white/5 border-white/10 focus-visible:ring-primary rounded-none"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label className="text-xs tracking-widest uppercase text-muted-foreground">
-                    Price *
-                  </Label>
-                  <Input
-                    value={newProp.price}
-                    onChange={(e) =>
-                      setNewProp({ ...newProp, price: e.target.value })
-                    }
-                    required
-                    placeholder="₹4.2 Cr onwards"
-                    className="bg-white/5 border-white/10 focus-visible:ring-primary rounded-none"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs tracking-widest uppercase text-muted-foreground">
-                    Sq.Ft *
-                  </Label>
-                  <Input
-                    value={newProp.sqft}
-                    onChange={(e) =>
-                      setNewProp({ ...newProp, sqft: e.target.value })
-                    }
-                    required
-                    placeholder="3200"
-                    className="bg-white/5 border-white/10 focus-visible:ring-primary rounded-none"
-                  />
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs tracking-widest uppercase text-muted-foreground">
-                  Image URL *
-                </Label>
-                <Input
-                  value={newProp.image}
-                  onChange={(e) =>
-                    setNewProp({ ...newProp, image: e.target.value })
-                  }
-                  required
-                  placeholder="https://..."
-                  className="bg-white/5 border-white/10 focus-visible:ring-primary rounded-none"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs tracking-widest uppercase text-muted-foreground">
-                  Description
-                </Label>
-                <Textarea
-                  value={newProp.description}
-                  onChange={(e) =>
-                    setNewProp({ ...newProp, description: e.target.value })
-                  }
-                  placeholder="A brief description of the property..."
-                  className="bg-white/5 border-white/10 focus-visible:ring-primary rounded-none resize-none min-h-[70px]"
-                />
-              </div>
-            </div>
-            <DialogFooter className="mt-4 gap-2">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setShowCreate(false)}
-                className="text-muted-foreground"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                className="bg-primary text-black hover:bg-amber-400 rounded-none text-xs tracking-wider"
-                disabled={createProperty.isPending}
-              >
-                {createProperty.isPending && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Create Property
-              </Button>
-            </DialogFooter>
-          </form>
+          <PropertyForm initial={editProp} onSave={onFormSave} onCancel={() => setFormOpen(false)} />
         </DialogContent>
       </Dialog>
     </div>
