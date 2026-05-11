@@ -3,8 +3,9 @@ import { useRoute, Link } from "wouter";
 import { motion } from "framer-motion";
 import useEmblaCarousel from "embla-carousel-react";
 import { ChevronLeft, ChevronRight, MapPin, Tag, ArrowLeft, MessageCircle } from "lucide-react";
-import { getPropertyBySlug } from "@/lib/supabase";
-import type { Property } from "@/lib/types";
+import { useQuery } from "@tanstack/react-query";
+import { getPropertyBySlug, getSettings } from "@/lib/supabase";
+import type { Property, SiteSettings } from "@/lib/types";
 import { NavBar } from "@/components/NavBar";
 import { Footer } from "@/components/Footer";
 
@@ -134,6 +135,12 @@ export default function PropertyDetail() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
+  const { data: settings } = useQuery<SiteSettings | null>({
+    queryKey: ["site-settings"],
+    queryFn: getSettings,
+  });
+  const whatsapp = settings?.whatsapp ?? "919876543210";
+
   useEffect(() => {
     if (!slug) return;
     setLoading(true);
@@ -250,7 +257,7 @@ export default function PropertyDetail() {
                     ENQUIRE NOW
                   </a>
                   <a
-                    href={`https://wa.me/${("919876543210")}`}
+                    href={`https://wa.me/${whatsapp.replace(/[^0-9]/g, "")}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center justify-center gap-2 w-full h-11 border border-[#25D366]/40 text-[#25D366] text-xs tracking-wider hover:bg-[#25D366]/10 transition-all"

@@ -1,0 +1,6 @@
+{
+  "buildCommand": "pnpm --filter @workspace/ak-realestate run build",
+  "outputDirectory": "artifacts/ak-realestate/dist/public",
+  "installCommand": "pnpm install --no-frozen-lockfile",
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}
