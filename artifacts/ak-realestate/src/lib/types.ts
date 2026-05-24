@@ -34,3 +34,17 @@ export type ContactSubmission = {
   message: string;
   created_at?: string;
 };
+
+export type BlogPost = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  content: string | null;
+  image_url: string | null;
+  category: string;
+  author: string;
+  is_published: boolean;
+  created_at: string;
+  updated_at: string;
+};

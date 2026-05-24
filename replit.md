@@ -96,10 +96,35 @@ values (1, '+91 98765 43210', 'luxury@akgroup.com', '919876543210', 'Chennai, Ta
 on conflict (id) do nothing;
 ```
 
+## New SQL to run (blog_posts table)
+
+Run this in your Supabase SQL editor to enable the Insights section:
+
+```sql
+create table blog_posts (
+  id uuid default gen_random_uuid() primary key,
+  slug text unique not null,
+  title text not null,
+  excerpt text,
+  content text,
+  image_url text,
+  category text default 'News',
+  author text default 'AK Group',
+  is_published boolean default true,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+alter table blog_posts enable row level security;
+create policy "Public read published" on blog_posts for select using (is_published = true);
+create policy "Admin write posts" on blog_posts for all using (auth.role() = 'authenticated');
+```
+
 ## User preferences
 
 - Dark matte black (#0a0a0a) + metallic orange (primary) palette only
-- Playfair Display (serif) for headings, Inter for body
+- Cormorant Garamond (serif) for headings, Inter for body
+- Actual AK logo at `/public/ak-logo.png` — used in NavBar, HeroSection, Admin
 - No emojis in code or UI
 - `ease` in Framer Motion Variants needs `as [number, number, number, number]` cast for cubic bezier arrays
 - NEVER use `import React from "react"` — Vite JSX transform handles it

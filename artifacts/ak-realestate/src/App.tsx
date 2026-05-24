@@ -7,6 +7,9 @@ import Home from "@/pages/Home";
 import Admin from "@/pages/Admin";
 import AdminLogin from "@/pages/AdminLogin";
 import PropertyDetail from "@/pages/PropertyDetail";
+import Properties from "@/pages/Properties";
+import Insights from "@/pages/Insights";
+import InsightDetail from "@/pages/InsightDetail";
 import { useEffect, useLayoutEffect } from "react";
 import Lenis from "lenis";
 import { useLocation } from "wouter";
@@ -44,7 +47,6 @@ function LenisScroll() {
 function ScrollToTop() {
   const [location] = useLocation();
   useLayoutEffect(() => {
-    if (!location.startsWith("/property/")) return;
     window.scrollTo(0, 0);
   }, [location]);
   return null;
@@ -57,6 +59,9 @@ function Router() {
       <ScrollToTop />
       <Switch>
         <Route path="/" component={Home} />
+        <Route path="/properties" component={Properties} />
+        <Route path="/insights" component={Insights} />
+        <Route path="/insights/:slug" component={InsightDetail} />
         <Route path="/property/:slug" component={PropertyDetail} />
         <Route path="/admin/login" component={AdminLogin} />
         <Route path="/admin" component={Admin} />
