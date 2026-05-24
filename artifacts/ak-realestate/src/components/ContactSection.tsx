@@ -40,39 +40,48 @@ export function ContactSection() {
       setForm({ first_name: "", last_name: "", email: "", phone: "", message: "" });
       setTimeout(() => setSubmitted(false), 5000);
     } catch {
-      toast({ title: "Something went wrong", description: "Try again or contact us on WhatsApp.", variant: "destructive" });
+      toast({ title: "Something went wrong", description: "Try again or reach us on WhatsApp.", variant: "destructive" });
     } finally {
       setSending(false);
     }
   };
 
   return (
-    <section id="contact" className="py-16 sm:py-24 bg-[#0a0a0a] relative overflow-hidden">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[60vw] h-[50vh] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }} className="mb-10 sm:mb-14">
-          <p className="text-[10px] sm:text-xs tracking-[0.3em] text-primary/70 uppercase mb-3">Get in Touch</p>
-          <h2 className="text-2xl sm:text-4xl md:text-5xl font-serif font-bold tracking-wide">Connect With Us</h2>
-          <div className="mt-4 w-12 h-px bg-gradient-to-r from-primary/80 to-transparent shadow-[0_0_8px_rgba(255,140,0,0.4)]" />
+    <section id="contact" className="py-16 sm:py-24 bg-[#0a0a0a]">
+      <div className="max-w-7xl mx-auto px-5 sm:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 18 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+          className="mb-12 sm:mb-16"
+        >
+          <p className="text-[10px] tracking-[0.38em] text-primary/65 uppercase mb-4 font-light">Get in Touch</p>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-semibold tracking-tight">Connect With Us</h2>
+          <div className="mt-4 w-10 h-px bg-primary/55" />
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 sm:gap-16">
-          <motion.div initial={{ opacity: 0, x: -24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}>
-            <p className="text-sm sm:text-base text-muted-foreground/70 mb-8 max-w-sm leading-relaxed">
-              Schedule a private viewing or consultation with our team.
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 sm:gap-20">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <p className="text-sm text-foreground/50 mb-10 max-w-sm leading-relaxed font-light">
+              Schedule a private viewing or consultation. Our team responds within 24 hours.
             </p>
-            <div className="space-y-6 mb-8">
+            <div className="space-y-7 mb-10">
               {contactInfo.map(({ icon: Icon, label, value, href }) => (
-                <div key={label} className="flex items-start gap-4">
-                  <div className="w-9 h-9 border border-primary/30 bg-primary/5 flex items-center justify-center shrink-0 mt-0.5">
-                    <Icon className="text-primary" size={15} />
+                <div key={label} className="flex items-start gap-5">
+                  <div className="w-8 h-8 border border-white/10 flex items-center justify-center shrink-0 mt-0.5">
+                    <Icon className="text-primary/70" size={13} />
                   </div>
                   <div>
-                    <p className="text-[10px] tracking-[0.2em] text-muted-foreground/60 uppercase mb-1">{label}</p>
+                    <p className="text-[9px] tracking-[0.28em] text-foreground/35 uppercase mb-1 font-light">{label}</p>
                     {href
-                      ? <a href={href} className="text-sm text-foreground/80 hover:text-primary transition-colors">{value}</a>
-                      : <p className="text-sm text-foreground/80">{value}</p>
+                      ? <a href={href} className="text-sm text-foreground/70 hover:text-foreground/90 transition-colors font-light">{value}</a>
+                      : <p className="text-sm text-foreground/70 font-light">{value}</p>
                     }
                   </div>
                 </div>
@@ -81,71 +90,73 @@ export function ContactSection() {
             <a
               href={`https://wa.me/${whatsapp.replace(/[^0-9]/g, "")}`}
               target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-3 h-12 px-6 border border-[#25D366]/40 bg-[#25D366]/8 text-[#25D366] hover:bg-[#25D366]/15 hover:border-[#25D366]/60 transition-all duration-300 text-sm tracking-wider font-medium"
+              className="inline-flex items-center gap-3 h-11 px-6 border border-[#25D366]/35 text-[#25D366]/80 hover:text-[#25D366] hover:border-[#25D366]/55 transition-all duration-300 text-[11px] tracking-[0.18em] font-light uppercase"
             >
-              <MessageCircle size={18} /> Chat on WhatsApp
+              <MessageCircle size={14} /> Chat on WhatsApp
             </a>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, x: 24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.9, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}>
-            <div className="border border-white/[0.07] bg-white/[0.03] backdrop-blur-md p-6 sm:p-8 relative">
-              <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.9, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <div className="border border-white/[0.07] bg-[#0d0d0d] p-7 sm:p-10">
               {submitted ? (
-                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center py-16 text-center gap-4">
-                  <div className="w-14 h-14 border border-primary/40 bg-primary/10 flex items-center justify-center">
-                    <Mail className="text-primary" size={24} />
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.97 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="flex flex-col items-center justify-center py-16 text-center gap-5"
+                >
+                  <div className="w-12 h-12 border border-primary/30 flex items-center justify-center">
+                    <Mail className="text-primary" size={20} />
                   </div>
-                  <p className="font-serif text-xl text-foreground/90">Message Received</p>
-                  <p className="text-sm text-muted-foreground/70">Our team will reach out within 24 hours.</p>
+                  <p className="font-serif text-xl text-foreground/85">Message Received</p>
+                  <p className="text-sm text-foreground/45 font-light">Our team will reach out within 24 hours.</p>
                 </motion.div>
               ) : (
-                <form className="space-y-5" onSubmit={handleSubmit}>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {[
-                      { key: "first_name", label: "First Name" },
-                      { key: "last_name", label: "Last Name" },
-                    ].map(({ key, label }) => (
-                      <div key={key} className="space-y-1.5">
-                        <label className="text-[10px] tracking-[0.2em] text-muted-foreground/60 uppercase">{label}</label>
+                <form className="space-y-6" onSubmit={handleSubmit}>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    {[{ key: "first_name", label: "First Name" }, { key: "last_name", label: "Last Name" }].map(({ key, label }) => (
+                      <div key={key} className="space-y-2">
+                        <label className="text-[9px] tracking-[0.28em] text-foreground/35 uppercase font-light">{label}</label>
                         <Input
                           value={form[key as keyof typeof form]}
                           onChange={(e) => setForm({ ...form, [key]: e.target.value })}
                           required
-                          className="bg-white/[0.04] border-white/[0.08] focus-visible:ring-primary h-11 rounded-none text-sm"
+                          className="bg-white/[0.03] border-white/[0.07] focus-visible:ring-primary/40 h-11 rounded-none text-sm font-light"
                         />
                       </div>
                     ))}
                   </div>
-                  {[
-                    { key: "email", label: "Email", type: "email" },
-                    { key: "phone", label: "Phone", type: "tel" },
-                  ].map(({ key, label, type }) => (
-                    <div key={key} className="space-y-1.5">
-                      <label className="text-[10px] tracking-[0.2em] text-muted-foreground/60 uppercase">{label}</label>
+                  {[{ key: "email", label: "Email", type: "email" }, { key: "phone", label: "Phone", type: "tel" }].map(({ key, label, type }) => (
+                    <div key={key} className="space-y-2">
+                      <label className="text-[9px] tracking-[0.28em] text-foreground/35 uppercase font-light">{label}</label>
                       <Input
                         type={type}
                         value={form[key as keyof typeof form]}
                         onChange={(e) => setForm({ ...form, [key]: e.target.value })}
                         required={key === "email"}
-                        className="bg-white/[0.04] border-white/[0.08] focus-visible:ring-primary h-11 rounded-none text-sm"
+                        className="bg-white/[0.03] border-white/[0.07] focus-visible:ring-primary/40 h-11 rounded-none text-sm font-light"
                       />
                     </div>
                   ))}
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] tracking-[0.2em] text-muted-foreground/60 uppercase">Message</label>
+                  <div className="space-y-2">
+                    <label className="text-[9px] tracking-[0.28em] text-foreground/35 uppercase font-light">Message</label>
                     <Textarea
                       value={form.message}
                       onChange={(e) => setForm({ ...form, message: e.target.value })}
                       required
-                      className="bg-white/[0.04] border-white/[0.08] focus-visible:ring-primary min-h-[100px] rounded-none resize-none text-sm"
+                      className="bg-white/[0.03] border-white/[0.07] focus-visible:ring-primary/40 min-h-[90px] rounded-none resize-none text-sm font-light"
                     />
                   </div>
                   <Button
                     type="submit"
                     disabled={sending}
-                    className="w-full h-12 sm:h-14 bg-gradient-to-r from-primary to-amber-500 hover:from-amber-400 hover:to-primary text-black font-bold tracking-[0.15em] text-xs sm:text-sm rounded-none border-0 transition-all hover:shadow-[0_0_28px_rgba(255,140,0,0.35)] disabled:opacity-50"
+                    className="w-full h-12 bg-primary text-black font-medium tracking-[0.2em] text-[11px] rounded-none border-0 transition-colors hover:bg-amber-400 disabled:opacity-50 uppercase"
                   >
-                    {sending ? "SENDING…" : "SEND MESSAGE"}
+                    {sending ? "Sending…" : "Send Message"}
                   </Button>
                 </form>
               )}

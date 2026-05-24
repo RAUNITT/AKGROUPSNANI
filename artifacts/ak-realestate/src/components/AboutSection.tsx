@@ -22,121 +22,90 @@ function Counter({ end, suffix }: { end: number; suffix: string }) {
   useEffect(() => {
     if (!isInView) return;
     let start = 0;
-    const duration = 2200;
+    const duration = 2000;
     const increment = end / (duration / 16);
     const timer = setInterval(() => {
       start += increment;
-      if (start >= end) {
-        setCount(end);
-        clearInterval(timer);
-      } else {
-        setCount(Math.floor(start));
-      }
+      if (start >= end) { setCount(end); clearInterval(timer); }
+      else setCount(Math.floor(start));
     }, 16);
     return () => clearInterval(timer);
   }, [end, isInView]);
 
-  return (
-    <span ref={ref}>
-      {count.toLocaleString()}
-      {suffix}
-    </span>
-  );
+  return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
 }
 
 export function AboutSection() {
-  const statement =
-    "Building Tamil Nadu's future landmarks with trust, elegance, and long-term value.";
-  const words = statement.split(" ");
-
   return (
-    <section id="about" className="py-16 sm:py-24 bg-[#0a0a0a] relative overflow-hidden">
-      {/* Ambient */}
-      <div className="absolute bottom-0 right-0 w-[50vw] h-[60vh] bg-amber-900/8 blur-[120px] rounded-full pointer-events-none" />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        {/* Section label */}
+    <section id="about" className="py-16 sm:py-24 bg-[#0a0a0a]">
+      <div className="max-w-7xl mx-auto px-5 sm:px-8">
         <motion.p
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 14 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          className="text-[10px] sm:text-xs tracking-[0.3em] text-primary/70 uppercase mb-3 sm:mb-4"
+          className="text-[10px] tracking-[0.38em] text-primary/65 uppercase mb-4 font-light"
         >
           Our Story
         </motion.p>
 
-        {/* Stats + Statement grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 sm:gap-16 mb-16 sm:mb-20 items-start">
-          {/* Stats */}
-          <div className="grid grid-cols-2 gap-6 sm:gap-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 sm:gap-20 mb-16 sm:mb-20 items-start">
+          <div className="grid grid-cols-2 gap-8 sm:gap-12">
             {stats.map((stat, idx) => (
               <motion.div
                 key={stat.label}
-                initial={{ opacity: 0, y: 24 }}
+                initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{
-                  duration: 0.8,
-                  delay: idx * 0.1,
-                  ease: [0.22, 1, 0.36, 1],
-                }}
-                className="flex flex-col gap-1"
+                transition={{ duration: 0.8, delay: idx * 0.09, ease: [0.22, 1, 0.36, 1] }}
+                className="flex flex-col gap-2 border-l border-white/[0.07] pl-5"
                 data-testid={`stat-${stat.label.toLowerCase().replace(/\s/g, "-")}`}
               >
-                <span className="text-3xl sm:text-4xl md:text-5xl font-serif text-primary drop-shadow-[0_0_20px_rgba(255,140,0,0.3)]">
+                <span className="text-3xl sm:text-4xl md:text-5xl font-serif text-primary font-medium">
                   <Counter end={stat.value} suffix={stat.suffix} />
                 </span>
-                <span className="text-[10px] sm:text-xs tracking-[0.18em] text-muted-foreground uppercase">
+                <span className="text-[9px] tracking-[0.22em] text-foreground/40 uppercase font-light">
                   {stat.label}
                 </span>
               </motion.div>
             ))}
           </div>
 
-          {/* Brand statement */}
           <div className="flex flex-col justify-center">
-            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-serif font-medium leading-relaxed text-foreground/85">
-              {words.map((word, i) => (
-                <motion.span
-                  key={i}
-                  initial={{ opacity: 0, filter: "blur(6px)", y: 8 }}
-                  whileInView={{ opacity: 1, filter: "blur(0px)", y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{
-                    duration: 0.7,
-                    delay: i * 0.06,
-                    ease: [0.22, 1, 0.36, 1],
-                  }}
-                  className="inline-block mr-[0.3em]"
-                >
-                  {word}
-                </motion.span>
-              ))}
-            </h2>
-          </div>
-        </div>
-
-        {/* Pillars */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-          {pillars.map((pillar, idx) => (
-            <motion.div
-              key={pillar.name}
+            <motion.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{
-                duration: 0.9,
-                delay: 0.3 + idx * 0.15,
-                ease: [0.22, 1, 0.36, 1],
-              }}
-              className="relative p-6 sm:p-8 border border-white/[0.07] bg-white/[0.03] group hover:border-primary/30 hover:bg-white/[0.05] transition-all duration-500"
+              transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+              className="text-2xl sm:text-3xl md:text-4xl font-serif font-medium leading-relaxed text-foreground/80 mb-6"
             >
-              <div className="absolute top-0 left-6 w-10 h-[2px] bg-gradient-to-r from-primary to-amber-400 group-hover:w-20 transition-all duration-500 shadow-[0_0_8px_rgba(255,140,0,0.4)]" />
-              <h3 className="text-base sm:text-lg font-serif tracking-[0.15em] text-foreground mt-5 mb-2">
-                {pillar.name.toUpperCase()}
+              Building Tamil Nadu's future landmarks with trust, elegance, and long-term value.
+            </motion.h2>
+            <motion.div
+              initial={{ scaleX: 0 }}
+              whileInView={{ scaleX: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+              className="w-10 h-px bg-primary/50 origin-left"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-white/[0.05]">
+          {pillars.map((pillar, idx) => (
+            <motion.div
+              key={pillar.name}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.9, delay: 0.2 + idx * 0.12, ease: [0.22, 1, 0.36, 1] }}
+              className="relative p-8 sm:p-10 bg-[#0a0a0a] group hover:bg-[#0d0d0d] transition-colors duration-400"
+            >
+              <div className="w-8 h-px bg-primary/50 mb-6" />
+              <h3 className="font-serif text-lg sm:text-xl tracking-[0.08em] text-foreground/85 mb-3">
+                {pillar.name}
               </h3>
-              <p className="text-xs sm:text-sm text-muted-foreground/70 leading-relaxed">
+              <p className="text-sm text-foreground/45 leading-relaxed font-light">
                 {pillar.desc}
               </p>
             </motion.div>
