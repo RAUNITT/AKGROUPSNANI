@@ -5,22 +5,28 @@ import { AboutSection } from "@/components/AboutSection";
 import { LogoShowcase } from "@/components/LogoShowcase";
 import { ContactSection } from "@/components/ContactSection";
 import { Footer } from "@/components/Footer";
-import { SectionDivider } from "@/components/SectionDivider";
+import { WebGLBackground } from "@/components/WebGLBackground";
+import { FloatingElements } from "@/components/FloatingElements";
 
 export default function Home() {
   return (
-    <div className="min-h-[100dvh] w-full bg-[#0a0a0a] text-foreground selection:bg-primary/30">
-      <NavBar />
-      <HeroSection />
-      <SectionDivider accentLine />
-      <PropertySection />
-      <SectionDivider />
-      <AboutSection />
-      <SectionDivider accentLine />
-      <LogoShowcase />
-      <SectionDivider />
-      <ContactSection />
-      <Footer />
+    <div className="min-h-[100dvh] w-full text-foreground selection:bg-primary/30 relative">
+      {/* WebGL shader background — fixed, covers entire page */}
+      <WebGLBackground />
+
+      {/* Floating parallax geometric elements */}
+      <FloatingElements />
+
+      {/* All content sits above the WebGL canvas */}
+      <div className="relative z-10">
+        <NavBar />
+        <HeroSection />
+        <PropertySection />
+        <AboutSection />
+        <LogoShowcase />
+        <ContactSection />
+        <Footer />
+      </div>
     </div>
   );
 }
