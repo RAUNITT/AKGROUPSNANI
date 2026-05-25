@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { supabase, getAllProperties, deleteProperty, getContacts, getSettings, updateSettings, getAllPosts, deletePost } from "@/lib/supabase";
-import type { Property, SiteSettings, BlogPost } from "@/lib/types";
+import { supabase, getAllProperties, deleteProperty, getContacts, getSettings, updateSettings } from "@/lib/supabase";
+import type { Property, SiteSettings } from "@/lib/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus, Trash2, Pencil, ArrowLeft, LogOut } from "lucide-react";
 import { PropertyForm } from "@/components/admin/PropertyForm";
-import { InsightForm } from "@/components/admin/InsightForm";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export default function Admin() {
@@ -41,16 +40,20 @@ export default function Admin() {
   };
   useEffect(() => { if (authChecked) loadProperties(); }, [authChecked]);
 
+  // Form dialog
   const [formOpen, setFormOpen] = useState(false);
   const [editProp, setEditProp] = useState<Property | null>(null);
   const openCreate = () => { setEditProp(null); setFormOpen(true); };
   const openEdit = (p: Property) => { setEditProp(p); setFormOpen(true); };
   const onFormSave = () => { setFormOpen(false); loadProperties(); toast({ title: editProp ? "Property updated" : "Property created" }); };
 
-  const handleDeleteProp = async (id: string, title: string) => {
+  const handleDelete = async (id: string, title: string) => {
     if (!confirm(`Delete "${title}"?`)) return;
-    try { await deleteProperty(id); toast({ title: "Property deleted" }); loadProperties(); }
-    catch { toast({ title: "Delete failed", variant: "destructive" }); }
+    try {
+      await deleteProperty(id);
+      toast({ title: "Property deleted" });
+      loadProperties();
+    } catch { toast({ title: "Delete failed", variant: "destructive" }); }
   };
 
   // Contacts
@@ -61,39 +64,23 @@ export default function Admin() {
     getContacts().then(setContacts).finally(() => setLoadingContacts(false));
   };
 
-  // Blog Posts (Insights)
-  const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [loadingPosts, setLoadingPosts] = useState(false);
-  const loadPosts = () => {
-    setLoadingPosts(true);
-    getAllPosts().then((d) => setPosts(d as BlogPost[])).finally(() => setLoadingPosts(false));
-  };
-
-  const [insightFormOpen, setInsightFormOpen] = useState(false);
-  const [editPost, setEditPost] = useState<BlogPost | null>(null);
-  const openCreatePost = () => { setEditPost(null); setInsightFormOpen(true); };
-  const openEditPost = (p: BlogPost) => { setEditPost(p); setInsightFormOpen(true); };
-  const onInsightSave = () => { setInsightFormOpen(false); loadPosts(); toast({ title: editPost ? "Article updated" : "Article published" }); };
-
-  const handleDeletePost = async (id: string, title: string) => {
-    if (!confirm(`Delete "${title}"?`)) return;
-    try { await deletePost(id); toast({ title: "Article deleted" }); loadPosts(); }
-    catch { toast({ title: "Delete failed", variant: "destructive" }); }
-  };
-
   // Settings
+  const [settings, setSettings] = useState<SiteSettings | null>(null);
   const [settingsForm, setSettingsForm] = useState({ phone: "", email: "", whatsapp: "", office_address: "" });
   const [savingSettings, setSavingSettings] = useState(false);
   const loadSettingsData = () => {
     getSettings().then((s) => {
-      if (s) setSettingsForm({ phone: s.phone, email: s.email, whatsapp: s.whatsapp, office_address: s.office_address });
+      if (s) { setSettings(s); setSettingsForm({ phone: s.phone, email: s.email, whatsapp: s.whatsapp, office_address: s.office_address }); }
     });
   };
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     setSavingSettings(true);
-    try { await updateSettings(settingsForm); toast({ title: "Settings saved" }); loadSettingsData(); }
-    catch { toast({ title: "Save failed", variant: "destructive" }); }
+    try {
+      await updateSettings(settingsForm);
+      toast({ title: "Settings saved" });
+      loadSettingsData();
+    } catch { toast({ title: "Save failed", variant: "destructive" }); }
     finally { setSavingSettings(false); }
   };
 
@@ -115,14 +102,11 @@ export default function Admin() {
             <a href="/" className="text-muted-foreground/50 hover:text-primary transition-colors">
               <ArrowLeft size={18} />
             </a>
-            <div className="flex items-center gap-3">
-              <img src="/ak-logo.png" alt="AK Group" className="h-9 w-auto object-contain opacity-80" />
-              <div>
-                <h1 className="text-xl sm:text-2xl font-serif font-bold tracking-wide">Admin Dashboard</h1>
-                <p className="text-[10px] text-muted-foreground/40 tracking-widest uppercase mt-0.5">
-                  {session?.user?.email}
-                </p>
-              </div>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-serif font-bold tracking-wide">Admin Dashboard</h1>
+              <p className="text-[10px] text-muted-foreground/40 tracking-widest uppercase mt-0.5">
+                {session?.user?.email}
+              </p>
             </div>
           </div>
           <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-muted-foreground/50 hover:text-red-400 text-xs gap-2">
@@ -130,22 +114,16 @@ export default function Admin() {
           </Button>
         </div>
 
-        <Tabs defaultValue="properties" className="space-y-6"
-          onValueChange={(v) => {
-            if (v === "contacts") loadContacts();
-            if (v === "settings") loadSettingsData();
-            if (v === "insights") loadPosts();
-          }}
-        >
-          <TabsList className="bg-white/5 border border-white/10 h-auto p-1 gap-1 flex flex-wrap">
-            {["properties", "insights", "contacts", "settings"].map((t) => (
-              <TabsTrigger key={t} value={t} className="data-[state=active]:bg-primary data-[state=active]:text-black text-[10px] tracking-wider uppercase">
+        <Tabs defaultValue="properties" className="space-y-6" onValueChange={(v) => { if (v === "contacts") loadContacts(); if (v === "settings") loadSettingsData(); }}>
+          <TabsList className="bg-white/5 border border-white/10 h-auto p-1 gap-1 w-full sm:w-auto">
+            {["properties", "contacts", "settings"].map((t) => (
+              <TabsTrigger key={t} value={t} className="data-[state=active]:bg-primary data-[state=active]:text-black text-[11px] tracking-wider uppercase flex-1 sm:flex-none">
                 {t}
               </TabsTrigger>
             ))}
           </TabsList>
 
-          {/* ── PROPERTIES ─────────────────────── */}
+          {/* ── PROPERTIES ─────────────────── */}
           <TabsContent value="properties">
             <div className="border border-white/[0.07] bg-white/[0.03]">
               <div className="flex items-center justify-between px-5 sm:px-7 py-5 border-b border-white/[0.07]">
@@ -154,10 +132,11 @@ export default function Admin() {
                   <Plus size={14} /> Add Property
                 </Button>
               </div>
+
               {loadingProps ? (
                 <div className="flex justify-center py-16"><Loader2 className="animate-spin text-primary" /></div>
               ) : properties.length === 0 ? (
-                <p className="text-center py-16 text-muted-foreground/40 text-sm">No properties yet.</p>
+                <p className="text-center py-16 text-muted-foreground/40 text-sm">No properties yet. Add one to get started.</p>
               ) : (
                 <div className="overflow-x-auto">
                   <Table>
@@ -187,7 +166,7 @@ export default function Admin() {
                               <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white hover:bg-white/10" onClick={() => openEdit(p)}>
                                 <Pencil size={13} />
                               </Button>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-red-400/70 hover:text-red-400 hover:bg-red-400/10" onClick={() => handleDeleteProp(p.id, p.title)}>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-red-400/70 hover:text-red-400 hover:bg-red-400/10" onClick={() => handleDelete(p.id, p.title)}>
                                 <Trash2 size={13} />
                               </Button>
                             </div>
@@ -201,70 +180,7 @@ export default function Admin() {
             </div>
           </TabsContent>
 
-          {/* ── INSIGHTS ───────────────────────── */}
-          <TabsContent value="insights">
-            <div className="border border-white/[0.07] bg-white/[0.03]">
-              <div className="flex items-center justify-between px-5 sm:px-7 py-5 border-b border-white/[0.07]">
-                <h2 className="font-serif text-lg">Insights / Articles <span className="text-muted-foreground/40 text-sm font-sans ml-2">{posts.length}</span></h2>
-                <Button size="sm" onClick={openCreatePost} className="bg-primary text-black hover:bg-amber-400 rounded-none text-xs tracking-wider gap-1.5">
-                  <Plus size={14} /> New Article
-                </Button>
-              </div>
-              {loadingPosts ? (
-                <div className="flex justify-center py-16"><Loader2 className="animate-spin text-primary" /></div>
-              ) : posts.length === 0 ? (
-                <div className="text-center py-16 space-y-3">
-                  <p className="text-muted-foreground/40 text-sm">No articles yet.</p>
-                  <Button size="sm" onClick={openCreatePost} variant="ghost" className="text-primary text-xs gap-1.5">
-                    <Plus size={12} /> Write your first article
-                  </Button>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="border-white/[0.07] hover:bg-transparent">
-                        {["Title", "Category", "Author", "Status", "Date", ""].map((h) => (
-                          <TableHead key={h} className="text-muted-foreground/50 text-[10px] tracking-widest uppercase">{h}</TableHead>
-                        ))}
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {posts.map((p) => (
-                        <TableRow key={p.id} className="border-white/[0.05] hover:bg-white/[0.02]">
-                          <TableCell className="font-medium text-sm max-w-[200px] truncate">{p.title}</TableCell>
-                          <TableCell className="hidden sm:table-cell">
-                            <span className="text-[9px] tracking-widest px-2 py-0.5 border border-white/15 text-foreground/50">{p.category}</span>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground text-sm hidden md:table-cell">{p.author}</TableCell>
-                          <TableCell>
-                            <span className={`text-[9px] tracking-widest ${p.is_published ? "text-emerald-400" : "text-amber-400/70"}`}>
-                              {p.is_published ? "Published" : "Draft"}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-xs text-muted-foreground/50 hidden sm:table-cell">
-                            {new Date(p.created_at).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white hover:bg-white/10" onClick={() => openEditPost(p)}>
-                                <Pencil size={13} />
-                              </Button>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-red-400/70 hover:text-red-400 hover:bg-red-400/10" onClick={() => handleDeletePost(p.id, p.title)}>
-                                <Trash2 size={13} />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </div>
-          </TabsContent>
-
-          {/* ── CONTACTS ───────────────────────── */}
+          {/* ── CONTACTS ───────────────────── */}
           <TabsContent value="contacts">
             <div className="border border-white/[0.07] bg-white/[0.03]">
               <div className="px-5 sm:px-7 py-5 border-b border-white/[0.07]">
@@ -301,7 +217,7 @@ export default function Admin() {
             </div>
           </TabsContent>
 
-          {/* ── SETTINGS ───────────────────────── */}
+          {/* ── SETTINGS ───────────────────── */}
           <TabsContent value="settings">
             <div className="border border-white/[0.07] bg-white/[0.03] p-5 sm:p-8 max-w-lg">
               <h2 className="font-serif text-lg mb-6">Site Settings</h2>
@@ -310,7 +226,7 @@ export default function Admin() {
                   { key: "office_address", label: "Office Address" },
                   { key: "phone", label: "Phone Number" },
                   { key: "email", label: "Email Address" },
-                  { key: "whatsapp", label: "WhatsApp Number (digits only, with country code)" },
+                  { key: "whatsapp", label: "WhatsApp Number (with country code, no +)" },
                 ].map(({ key, label }) => (
                   <div key={key} className="space-y-1.5">
                     <Label className="text-[10px] tracking-widest uppercase text-muted-foreground/60">{label}</Label>
@@ -338,16 +254,6 @@ export default function Admin() {
             <DialogTitle className="font-serif text-xl">{editProp ? "Edit Property" : "Add New Property"}</DialogTitle>
           </DialogHeader>
           <PropertyForm initial={editProp} onSave={onFormSave} onCancel={() => setFormOpen(false)} />
-        </DialogContent>
-      </Dialog>
-
-      {/* Insight Form Dialog */}
-      <Dialog open={insightFormOpen} onOpenChange={setInsightFormOpen}>
-        <DialogContent className="bg-[#0d0d0d] border-white/10 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="font-serif text-xl">{editPost ? "Edit Article" : "New Article"}</DialogTitle>
-          </DialogHeader>
-          <InsightForm initial={editPost} onSave={onInsightSave} onCancel={() => setInsightFormOpen(false)} />
         </DialogContent>
       </Dialog>
     </div>

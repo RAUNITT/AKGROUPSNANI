@@ -3,39 +3,52 @@ import { Linkedin } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="relative bg-[#080808] border-t border-white/[0.05]">
-      {/* Floating line decoration */}
-      <div className="absolute top-0 left-1/4 right-1/4 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-
-      <div className="max-w-7xl mx-auto px-5 sm:px-8 py-14 sm:py-20">
-        {/* Top: large logo mark */}
-        <div className="flex flex-col items-center mb-12 sm:mb-16">
-          <img
-            src="/ak-logo.png"
-            alt="AK Group of Real Estate"
-            className="h-14 sm:h-18 w-auto object-contain opacity-60 hover:opacity-90 transition-opacity duration-500"
-          />
-          <div className="mt-4 flex items-center gap-2">
-            <span className="text-[10px] tracking-[0.48em] text-foreground/25 uppercase font-light">Group</span>
-            <span className="text-foreground/10">·</span>
-            <span className="text-[10px] tracking-[0.48em] text-foreground/25 uppercase font-light">of Real Estate</span>
+    <footer className="bg-[#050505] border-t border-primary/15 py-8 sm:py-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-5 sm:gap-6">
+          {/* Logo + name */}
+          <div className="flex items-center gap-3">
+            <img
+              src="/ak-logo.png"
+              alt="AK Group"
+              className="h-7 sm:h-8 w-auto opacity-75"
+            />
+            <div className="flex flex-col leading-tight">
+              <span className="text-[9px] sm:text-[10px] tracking-[0.2em] text-primary/60 uppercase">
+                AK Group
+              </span>
+              <span className="text-[8px] sm:text-[9px] tracking-[0.12em] text-foreground/30 uppercase">
+                of Real Estate
+              </span>
+            </div>
           </div>
-        </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-          <p className="text-[9px] tracking-[0.18em] text-foreground/20 uppercase text-center order-last sm:order-none font-light">
-            © {new Date().getFullYear()} AK Group of Real Estate. All Rights Reserved.
+          <p className="text-[9px] sm:text-[10px] tracking-[0.15em] text-muted-foreground/40 uppercase text-center order-last sm:order-none">
+            © 2025 AK Group of Real Estate. All Rights Reserved.
           </p>
 
-          <div className="flex items-center gap-6">
-            <a href="#" aria-label="Instagram" className="text-foreground/20 hover:text-foreground/55 transition-colors duration-300">
-              <SiInstagram size={15} />
+          {/* Social */}
+          <div className="flex items-center gap-5">
+            <a
+              href="#"
+              aria-label="Instagram"
+              className="text-muted-foreground/40 hover:text-primary transition-colors duration-300"
+            >
+              <SiInstagram size={16} />
             </a>
-            <a href="#" aria-label="Facebook" className="text-foreground/20 hover:text-foreground/55 transition-colors duration-300">
-              <SiFacebook size={15} />
+            <a
+              href="#"
+              aria-label="Facebook"
+              className="text-muted-foreground/40 hover:text-primary transition-colors duration-300"
+            >
+              <SiFacebook size={16} />
             </a>
-            <a href="#" aria-label="LinkedIn" className="text-foreground/20 hover:text-foreground/55 transition-colors duration-300">
-              <Linkedin size={15} />
+            <a
+              href="#"
+              aria-label="LinkedIn"
+              className="text-muted-foreground/40 hover:text-primary transition-colors duration-300"
+            >
+              <Linkedin size={16} />
             </a>
           </div>
         </div>
