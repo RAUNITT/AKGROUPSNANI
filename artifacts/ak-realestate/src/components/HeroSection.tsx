@@ -1,5 +1,5 @@
-import { motion } from "framer-motion";
-import { ParticleCanvas } from "./ParticleCanvas";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 
 const containerVariants = {
@@ -21,30 +21,34 @@ const wordVariants = {
 
 export function HeroSection() {
   const titleWords = ["AK", "GROUP", "OF", "REAL", "ESTATE"];
+  const { scrollY } = useScroll();
+
+  const logoY = useTransform(scrollY, [0, 500], [0, -120]);
+  const titleY = useTransform(scrollY, [0, 500], [0, -180]);
+  const subtitleY = useTransform(scrollY, [0, 500], [0, -200]);
+  const opacityFade = useTransform(scrollY, [0, 400], [1, 0]);
+  const skylineY = useTransform(scrollY, [0, 500], [0, 60]);
 
   return (
     <section
       id="home"
-      className="relative w-full min-h-screen flex flex-col items-center justify-center overflow-hidden bg-[#0a0a0a]"
+      className="relative w-full min-h-screen flex flex-col items-center justify-center overflow-hidden z-1"
     >
-      {/* Base gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#080808] via-[#0a0a0a] to-[#0f0f0f] z-0" />
-
-      {/* Particles */}
-      <ParticleCanvas />
+      {/* Base gradient removed so global canvas shows through */}
 
       {/* Ambient glow — bottom center */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[70vw] h-[45vh] bg-primary/15 blur-[140px] rounded-full pointer-events-none z-0" />
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[70vw] h-[45vh] bg-primary/15 blur-[140px] rounded-full pointer-events-none z-0" style={{ animation: "pulse-glow 4s infinite ease-in-out" }} />
       {/* Ambient glow — top right */}
-      <div className="absolute top-0 right-0 w-[35vw] h-[35vh] bg-amber-700/10 blur-[100px] rounded-full pointer-events-none z-0" />
+      <div className="absolute top-0 right-0 w-[35vw] h-[35vh] bg-amber-700/10 blur-[100px] rounded-full pointer-events-none z-0" style={{ animation: "pulse-glow 6s infinite ease-in-out reverse" }} />
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col items-center text-center px-5 w-full max-w-5xl pt-24 pb-16">
+      <motion.div style={{ opacity: opacityFade }} className="relative z-10 flex flex-col items-center text-center px-5 w-full max-w-5xl pt-24 pb-16">
         {/* Logo reveal */}
         <motion.div
           initial={{ opacity: 0, scale: 0.75, filter: "blur(12px)" }}
           animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
           transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
+          style={{ y: logoY }}
           className="mb-8 sm:mb-10"
         >
           <img
@@ -59,6 +63,7 @@ export function HeroSection() {
           initial="hidden"
           animate="visible"
           variants={containerVariants}
+          style={{ y: titleY }}
           className="flex flex-wrap justify-center gap-x-3 gap-y-0 mb-5 sm:mb-6"
         >
           {titleWords.map((word) => (
@@ -79,6 +84,7 @@ export function HeroSection() {
           initial={{ scaleX: 0, opacity: 0 }}
           animate={{ scaleX: 1, opacity: 1 }}
           transition={{ duration: 1.2, delay: 1.2, ease: [0.22, 1, 0.36, 1] }}
+          style={{ y: titleY }}
           className="w-16 sm:w-24 h-px bg-gradient-to-r from-transparent via-primary to-transparent mb-5 sm:mb-6"
         />
 
@@ -87,6 +93,7 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 1.5, ease: [0.22, 1, 0.36, 1] }}
+          style={{ y: subtitleY }}
           className="text-xs sm:text-sm md:text-base font-light tracking-[0.35em] text-foreground/60 mb-10 sm:mb-12 uppercase"
         >
           From Land to Legacy
@@ -97,11 +104,12 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 1.85, ease: [0.22, 1, 0.36, 1] }}
-          className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto"
+          style={{ y: subtitleY }}
+          className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto flex-wrap justify-center"
         >
           <Button
             asChild
-            className="h-12 sm:h-14 px-8 sm:px-10 bg-gradient-to-r from-primary to-amber-500 hover:from-amber-400 hover:to-primary text-black font-semibold tracking-wider text-sm transition-all duration-500 hover:scale-[1.03] hover:shadow-[0_0_28px_rgba(255,140,0,0.45)] border-0 rounded-none"
+            className="h-12 sm:h-14 px-8 sm:px-10 glass-amber text-amber-300 font-semibold tracking-wider text-sm transition-all duration-500 hover:scale-[1.03] hover:shadow-[0_0_32px_rgba(245,158,11,0.45)] hover:text-amber-200 rounded-sm border-0"
             data-testid="button-explore-properties"
           >
             <a href="#properties">Explore Properties</a>
@@ -109,16 +117,24 @@ export function HeroSection() {
           <Button
             asChild
             variant="outline"
-            className="h-12 sm:h-14 px-8 sm:px-10 border-primary/40 bg-white/[0.04] backdrop-blur-sm text-foreground hover:bg-primary/10 hover:border-primary text-sm tracking-wider transition-all duration-500 hover:scale-[1.03] hover:shadow-[0_0_20px_rgba(255,140,0,0.2)] rounded-none"
+            className="h-12 sm:h-14 px-8 sm:px-10 glass text-foreground/80 hover:text-foreground font-medium tracking-wider text-sm transition-all duration-500 hover:scale-[1.03] rounded-sm"
             data-testid="button-contact-us"
           >
             <a href="#contact">Contact Us</a>
           </Button>
+          <Button
+            asChild
+            variant="outline"
+            className="h-12 sm:h-14 px-8 sm:px-10 glass-amber text-amber-400 font-medium tracking-wider text-sm transition-all duration-500 hover:scale-[1.03] hover:shadow-[0_0_20px_rgba(245,158,11,0.25)] rounded-sm border-0"
+            data-testid="button-explore-tools"
+          >
+            <Link href="/tools">Explore Tools</Link>
+          </Button>
         </motion.div>
-      </div>
+      </motion.div>
 
       {/* Skyline silhouette */}
-      <div className="absolute bottom-0 left-0 right-0 h-24 sm:h-32 pointer-events-none z-[1] overflow-hidden">
+      <motion.div style={{ y: skylineY }} className="absolute bottom-0 left-0 right-0 h-24 sm:h-32 pointer-events-none z-[1] overflow-hidden">
         <svg
           viewBox="0 0 1440 100"
           preserveAspectRatio="none"
@@ -131,7 +147,7 @@ export function HeroSection() {
             fill="#ff8c00"
           />
         </svg>
-      </div>
+      </motion.div>
 
       {/* Scroll indicator */}
       <motion.div

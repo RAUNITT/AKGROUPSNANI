@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { supabase, getAllProperties, deleteProperty, getContacts, getSettings, updateSettings } from "@/lib/supabase";
-import type { Property, SiteSettings } from "@/lib/types";
+import { supabase, getAllProperties, deleteProperty, getContacts, getSettings, updateSettings, getInsights, deleteInsight, uploadInsightImage, createInsight, updateInsight, getPropertyRequests } from "@/lib/supabase";
+import type { Property, SiteSettings, Insight, PropertyRequest } from "@/lib/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus, Trash2, Pencil, ArrowLeft, LogOut } from "lucide-react";
 import { PropertyForm } from "@/components/admin/PropertyForm";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { InsightForm } from "@/components/admin/InsightForm";
 
 export default function Admin() {
   const [, navigate] = useLocation();
@@ -56,7 +57,37 @@ export default function Admin() {
     } catch { toast({ title: "Delete failed", variant: "destructive" }); }
   };
 
-  // Contacts
+  // Insights
+  const [insights, setInsights] = useState<Insight[]>([]);
+  const [loadingInsights, setLoadingInsights] = useState(false);
+  const loadInsights = () => {
+    setLoadingInsights(true);
+    getInsights().then(setInsights).finally(() => setLoadingInsights(false));
+  };
+
+  const [insightFormOpen, setInsightFormOpen] = useState(false);
+  const [editInsight, setInsightProp] = useState<Insight | null>(null);
+
+  const openInsightCreate = () => { setInsightProp(null); setInsightFormOpen(true); };
+  const openInsightEdit = (i: Insight) => { setInsightProp(i); setInsightFormOpen(true); };
+
+  const handleInsightDelete = async (id: string, title: string) => {
+    if (!confirm(`Delete "${title}"?`)) return;
+    try {
+      await deleteInsight(id);
+      toast({ title: "Insight deleted" });
+      loadInsights();
+    } catch { toast({ title: "Delete failed", variant: "destructive" }); }
+  };
+
+  // Property Requests
+  const [requests, setRequests] = useState<PropertyRequest[]>([]);
+  const [loadingReqs, setLoadingReqs] = useState(false);
+  const loadRequests = () => {
+    setLoadingReqs(true);
+    getPropertyRequests().then(setRequests).finally(() => setLoadingReqs(false));
+  };
+
   const [contacts, setContacts] = useState<any[]>([]);
   const [loadingContacts, setLoadingContacts] = useState(false);
   const loadContacts = () => {
@@ -66,11 +97,11 @@ export default function Admin() {
 
   // Settings
   const [settings, setSettings] = useState<SiteSettings | null>(null);
-  const [settingsForm, setSettingsForm] = useState({ phone: "", email: "", whatsapp: "", office_address: "" });
+  const [settingsForm, setSettingsForm] = useState({ phone: "", email: "", whatsapp: "", office_address: "", stat_projects: 500, stat_years: 20, stat_cities: 4, stat_families: 10000 });
   const [savingSettings, setSavingSettings] = useState(false);
   const loadSettingsData = () => {
     getSettings().then((s) => {
-      if (s) { setSettings(s); setSettingsForm({ phone: s.phone, email: s.email, whatsapp: s.whatsapp, office_address: s.office_address }); }
+      if (s) { setSettings(s); setSettingsForm({ phone: s.phone, email: s.email, whatsapp: s.whatsapp, office_address: s.office_address, stat_projects: s.stat_projects ?? 500, stat_years: s.stat_years ?? 20, stat_cities: s.stat_cities ?? 4, stat_families: s.stat_families ?? 10000 }); }
     });
   };
   const handleSaveSettings = async (e: React.FormEvent) => {
@@ -114,9 +145,9 @@ export default function Admin() {
           </Button>
         </div>
 
-        <Tabs defaultValue="properties" className="space-y-6" onValueChange={(v) => { if (v === "contacts") loadContacts(); if (v === "settings") loadSettingsData(); }}>
-          <TabsList className="bg-white/5 border border-white/10 h-auto p-1 gap-1 w-full sm:w-auto">
-            {["properties", "contacts", "settings"].map((t) => (
+        <Tabs defaultValue="properties" className="space-y-6" onValueChange={(v) => { if (v === "contacts") loadContacts(); if (v === "settings" || v === "stats") loadSettingsData(); if (v === "insights") loadInsights(); if (v === "requests") loadRequests(); }}>
+          <TabsList className="bg-white/5 border border-white/10 h-auto p-1 gap-1 w-full sm:w-auto flex flex-wrap">
+            {["properties", "insights", "requests", "contacts", "stats", "settings"].map((t) => (
               <TabsTrigger key={t} value={t} className="data-[state=active]:bg-primary data-[state=active]:text-black text-[11px] tracking-wider uppercase flex-1 sm:flex-none">
                 {t}
               </TabsTrigger>
@@ -180,6 +211,91 @@ export default function Admin() {
             </div>
           </TabsContent>
 
+          {/* ── INSIGHTS ─────────────────── */}
+          <TabsContent value="insights">
+            <div className="border border-white/[0.07] bg-white/[0.03]">
+              <div className="flex items-center justify-between px-5 sm:px-7 py-5 border-b border-white/[0.07]">
+                <h2 className="font-serif text-lg">Insights <span className="text-muted-foreground/40 text-sm font-sans ml-2">{insights.length}</span></h2>
+                <Button size="sm" onClick={openInsightCreate} className="bg-primary text-black hover:bg-amber-400 rounded-none text-xs tracking-wider gap-1.5">
+                  <Plus size={14} /> Add Insight
+                </Button>
+              </div>
+
+              {loadingInsights ? (
+                <div className="flex justify-center py-16"><Loader2 className="animate-spin text-primary" /></div>
+              ) : insights.length === 0 ? (
+                <p className="text-center py-16 text-muted-foreground/40 text-sm">No insights yet.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-white/[0.07] hover:bg-transparent">
+                        {["Title", "Category", "Date", ""].map((h) => (
+                          <TableHead key={h} className="text-muted-foreground/50 text-[10px] tracking-widest uppercase">{h}</TableHead>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {insights.map((ins) => (
+                        <TableRow key={ins.id} className="border-white/[0.05] hover:bg-white/[0.02]">
+                          <TableCell className="font-medium text-sm max-w-[300px] truncate">{ins.title}</TableCell>
+                          <TableCell className="text-muted-foreground text-sm hidden sm:table-cell">{ins.category}</TableCell>
+                          <TableCell className="text-muted-foreground text-xs">{new Date(ins.published_at).toLocaleDateString()}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-red-400/70 hover:text-red-400 hover:bg-red-400/10" onClick={() => handleInsightDelete(ins.id, ins.title)}>
+                                <Trash2 size={13} />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          {/* ── REQUESTS ───────────────────── */}
+          <TabsContent value="requests">
+            <div className="border border-white/[0.07] bg-white/[0.03]">
+              <div className="px-5 sm:px-7 py-5 border-b border-white/[0.07]">
+                <h2 className="font-serif text-lg">Property Requests</h2>
+              </div>
+              {loadingReqs ? (
+                <div className="flex justify-center py-16"><Loader2 className="animate-spin text-primary" /></div>
+              ) : requests.length === 0 ? (
+                <p className="text-center py-16 text-muted-foreground/40 text-sm">No requests yet.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-white/[0.07] hover:bg-transparent">
+                        {["Name", "Phone", "Type", "Location", "Budget", "Purpose", "Date"].map((h) => (
+                          <TableHead key={h} className="text-muted-foreground/50 text-[10px] tracking-widest uppercase">{h}</TableHead>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {requests.map((r) => (
+                        <TableRow key={r.id} className="border-white/[0.05] hover:bg-white/[0.02]">
+                          <TableCell className="text-sm font-medium">{r.name}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground">{r.phone}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground">{r.property_type}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground">{r.location_preference}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground">{r.budget_min} - {r.budget_max}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground">{r.purpose}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground/50">{r.created_at ? new Date(r.created_at).toLocaleDateString() : ""}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
           {/* ── CONTACTS ───────────────────── */}
           <TabsContent value="contacts">
             <div className="border border-white/[0.07] bg-white/[0.03]">
@@ -214,6 +330,35 @@ export default function Admin() {
                   </Table>
                 </div>
               )}
+            </div>
+          </TabsContent>
+
+          {/* ── STATS ───────────────────── */}
+          <TabsContent value="stats">
+            <div className="border border-white/[0.07] bg-white/[0.03] p-5 sm:p-8 max-w-lg">
+              <h2 className="font-serif text-lg mb-6">Homepage Stats</h2>
+              <form onSubmit={handleSaveSettings} className="space-y-5">
+                {[
+                  { key: "stat_projects", label: "Projects Delivered", type: "number" },
+                  { key: "stat_years", label: "Years of Trust", type: "number" },
+                  { key: "stat_cities", label: "Cities", type: "number" },
+                  { key: "stat_families", label: "Happy Families", type: "number" },
+                ].map(({ key, label, type }) => (
+                  <div key={key} className="space-y-1.5">
+                    <Label className="text-[10px] tracking-widest uppercase text-muted-foreground/60">{label}</Label>
+                    <Input
+                      type={type}
+                      value={settingsForm[key as keyof typeof settingsForm]}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, [key]: Number(e.target.value) })}
+                      className="bg-white/5 border-white/10 focus-visible:ring-primary rounded-none"
+                    />
+                  </div>
+                ))}
+                <Button type="submit" disabled={savingSettings} className="bg-primary text-black hover:bg-amber-400 rounded-none text-xs tracking-wider mt-2">
+                  {savingSettings && <Loader2 className="animate-spin mr-2 h-4 w-4" />}
+                  Save Stats
+                </Button>
+              </form>
             </div>
           </TabsContent>
 
@@ -254,6 +399,16 @@ export default function Admin() {
             <DialogTitle className="font-serif text-xl">{editProp ? "Edit Property" : "Add New Property"}</DialogTitle>
           </DialogHeader>
           <PropertyForm initial={editProp} onSave={onFormSave} onCancel={() => setFormOpen(false)} />
+        </DialogContent>
+      </Dialog>
+
+      {/* Insight Form Dialog */}
+      <Dialog open={insightFormOpen} onOpenChange={setInsightFormOpen}>
+        <DialogContent className="bg-[#0d0d0d] border-white/10 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-xl">Add New Insight</DialogTitle>
+          </DialogHeader>
+          <InsightForm onSave={() => { setInsightFormOpen(false); loadInsights(); toast({ title: "Insight created" }); }} onCancel={() => setInsightFormOpen(false)} />
         </DialogContent>
       </Dialog>
     </div>

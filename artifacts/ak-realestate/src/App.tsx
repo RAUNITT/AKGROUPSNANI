@@ -7,9 +7,17 @@ import Home from "@/pages/Home";
 import Admin from "@/pages/Admin";
 import AdminLogin from "@/pages/AdminLogin";
 import PropertyDetail from "@/pages/PropertyDetail";
+import Properties from "@/pages/Properties";
+import Insights from "@/pages/Insights";
+import InsightDetail from "@/pages/InsightDetail";
+import Tools from "@/pages/Tools";
 import { useEffect, useLayoutEffect } from "react";
 import Lenis from "lenis";
 import { useLocation } from "wouter";
+import { RequestPropertyProvider } from "@/contexts/RequestPropertyContext";
+import { RequestPropertyModal } from "@/components/RequestPropertyModal";
+import { ParticleCanvas } from "@/components/ParticleCanvas";
+import { AnimatePresence, motion } from "framer-motion";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 1000 * 60 * 2 } },
@@ -44,24 +52,32 @@ function LenisScroll() {
 function ScrollToTop() {
   const [location] = useLocation();
   useLayoutEffect(() => {
-    if (!location.startsWith("/property/")) return;
     window.scrollTo(0, 0);
   }, [location]);
   return null;
 }
 
 function Router() {
+  const [location] = useLocation();
   return (
     <>
       <LenisScroll />
       <ScrollToTop />
-      <Switch>
-        <Route path="/" component={Home} />
-        <Route path="/property/:slug" component={PropertyDetail} />
-        <Route path="/admin/login" component={AdminLogin} />
-        <Route path="/admin" component={Admin} />
-        <Route component={NotFound} />
-      </Switch>
+      <AnimatePresence mode="wait">
+        <motion.div key={location} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4, ease: [0.22,1,0.36,1] }}>
+          <Switch location={location}>
+            <Route path="/" component={Home} />
+            <Route path="/properties" component={Properties} />
+            <Route path="/property/:slug" component={PropertyDetail} />
+            <Route path="/insights" component={Insights} />
+            <Route path="/insights/:slug" component={InsightDetail} />
+            <Route path="/tools" component={Tools} />
+            <Route path="/admin/login" component={AdminLogin} />
+            <Route path="/admin" component={Admin} />
+            <Route component={NotFound} />
+          </Switch>
+        </motion.div>
+      </AnimatePresence>
     </>
   );
 }
@@ -70,9 +86,13 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <Router />
-        </WouterRouter>
+        <RequestPropertyProvider>
+          <ParticleCanvas />
+          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+            <Router />
+            <RequestPropertyModal />
+          </WouterRouter>
+        </RequestPropertyProvider>
         <Toaster />
       </TooltipProvider>
     </QueryClientProvider>

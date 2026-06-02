@@ -1,12 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, useInView } from "framer-motion";
-
-const stats = [
-  { value: 500, suffix: "+", label: "Projects Delivered" },
-  { value: 12, suffix: "+", label: "Years of Trust" },
-  { value: 4, suffix: "", label: "Cities" },
-  { value: 10000, suffix: "+", label: "Happy Families" },
-];
+import { useQuery } from "@tanstack/react-query";
+import { getSettings } from "@/lib/supabase";
 
 const pillars = [
   { name: "Trust", desc: "Every project built on transparency and integrity." },
@@ -45,6 +40,14 @@ function Counter({ end, suffix }: { end: number; suffix: string }) {
 }
 
 export function AboutSection() {
+  const { data: settings } = useQuery({ queryKey: ["site-settings"], queryFn: getSettings });
+  const stats = [
+    { value: settings?.stat_projects ?? 500, suffix: "+", label: "Projects Delivered" },
+    { value: settings?.stat_years ?? 20, suffix: "+", label: "Years of Trust" },
+    { value: settings?.stat_cities ?? 4, suffix: "", label: "Cities" },
+    { value: settings?.stat_families ?? 10000, suffix: "+", label: "Happy Families" },
+  ];
+
   const statement =
     "Building Tamil Nadu's future landmarks with trust, elegance, and long-term value.";
   const words = statement.split(" ");
