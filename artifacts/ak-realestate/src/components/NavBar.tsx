@@ -103,8 +103,8 @@ export function NavBar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed top-[56px] left-0 right-0 z-40 border-b border-primary/15"
-            style={{ backgroundColor: "rgba(8,8,8,0.96)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}
+            className="fixed top-[56px] left-0 right-0 z-40 glass"
+            style={{ borderTop: 'none', borderLeft: 'none', borderRight: 'none' }}
           >
             <div className="flex flex-col px-6 py-6 gap-6">
               {NAV_LINKS.map(({ label, hash, isPage }, i) => (
@@ -124,7 +124,7 @@ export function NavBar() {
                   initial={{ opacity: 0, x: -12 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: NAV_LINKS.length * 0.06, duration: 0.3 }}
-                  className="text-sm tracking-[0.15em] font-semibold px-5 py-3 bg-gradient-to-r from-primary to-amber-500 text-black text-center uppercase"
+                  className="text-sm tracking-[0.15em] font-semibold px-5 py-3 glass-amber text-amber-300 text-center uppercase"
                   onClick={() => { setMenuOpen(false); openModal(); }}
                 >
                   Request Property
@@ -133,7 +133,7 @@ export function NavBar() {
                   initial={{ opacity: 0, x: -12 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: (NAV_LINKS.length + 1) * 0.06, duration: 0.3 }}
-                  className="text-sm tracking-[0.15em] font-semibold px-5 py-3 border border-primary/50 text-primary text-center uppercase"
+                  className="text-sm tracking-[0.15em] font-semibold px-5 py-3 glass text-foreground/80 text-center uppercase"
                   onClick={() => handleNavClick("#contact", false)}
                 >
                   Enquire Now

@@ -104,8 +104,9 @@ export function ParticleCanvas() {
     };
     window.addEventListener("mousemove", onMouse);
 
-    const PARTICLE_COUNT = 2200;
-    const BUILDING_COUNT = 55;
+    const isMobile = window.innerWidth < 640;
+    const PARTICLE_COUNT = isMobile ? 900 : 2200;
+    const BUILDING_COUNT = isMobile ? 28 : 55;
 
     const particles: Particle[] = Array.from({ length: PARTICLE_COUNT }, () =>
       randomParticle(camZ)

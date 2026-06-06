@@ -23,16 +23,16 @@ export function HeroSection() {
   const titleWords = ["AK", "GROUP", "OF", "REAL", "ESTATE"];
   const { scrollY } = useScroll();
 
-  const logoY = useTransform(scrollY, [0, 500], [0, -120]);
-  const titleY = useTransform(scrollY, [0, 500], [0, -180]);
-  const subtitleY = useTransform(scrollY, [0, 500], [0, -200]);
+  const logoY = useTransform(scrollY, [0, 500], [0, -80]);
+  const titleY = useTransform(scrollY, [0, 500], [0, -120]);
+  const subtitleY = useTransform(scrollY, [0, 500], [0, -140]);
   const opacityFade = useTransform(scrollY, [0, 400], [1, 0]);
-  const skylineY = useTransform(scrollY, [0, 500], [0, 60]);
+  const skylineY = useTransform(scrollY, [0, 500], [0, 40]);
 
   return (
     <section
       id="home"
-      className="relative w-full min-h-screen flex flex-col items-center justify-center overflow-hidden z-1"
+      className="relative w-full min-h-[100dvh] flex flex-col items-center justify-center overflow-hidden z-[1]"
     >
       {/* Base gradient removed so global canvas shows through */}
 
@@ -42,19 +42,19 @@ export function HeroSection() {
       <div className="absolute top-0 right-0 w-[35vw] h-[35vh] bg-amber-700/10 blur-[100px] rounded-full pointer-events-none z-0" style={{ animation: "pulse-glow 6s infinite ease-in-out reverse" }} />
 
       {/* Content */}
-      <motion.div style={{ opacity: opacityFade }} className="relative z-10 flex flex-col items-center text-center px-5 w-full max-w-5xl pt-24 pb-16">
+      <motion.div style={{ opacity: opacityFade }} className="relative z-10 flex flex-col items-center text-center px-5 w-full max-w-5xl pt-20 sm:pt-24 pb-12 sm:pb-16">
         {/* Logo reveal */}
         <motion.div
           initial={{ opacity: 0, scale: 0.75, filter: "blur(12px)" }}
           animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
           transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
           style={{ y: logoY }}
-          className="mb-8 sm:mb-10"
+          className="mb-4 sm:mb-10"
         >
           <img
             src="/ak-logo.png"
             alt="AK Logo"
-            className="w-24 sm:w-36 md:w-44 h-auto drop-shadow-[0_0_40px_rgba(255,140,0,0.55)]"
+            className="w-12 sm:w-36 md:w-44 h-auto drop-shadow-[0_0_40px_rgba(255,140,0,0.55)]"
           />
         </motion.div>
 
@@ -64,15 +64,16 @@ export function HeroSection() {
           animate="visible"
           variants={containerVariants}
           style={{ y: titleY }}
-          className="flex flex-wrap justify-center gap-x-3 gap-y-0 mb-5 sm:mb-6"
+          className="flex flex-wrap justify-center gap-x-1 sm:gap-x-3 gap-y-0 mb-3 sm:mb-6"
         >
           {titleWords.map((word) => (
             <motion.span
               key={word}
               variants={wordVariants}
-              className="font-serif font-bold text-transparent bg-clip-text bg-gradient-to-b from-amber-200 via-primary to-amber-600
-                         text-3xl sm:text-5xl md:text-7xl lg:text-8xl
-                         tracking-wider sm:tracking-widest"
+              className="font-serif font-bold text-amber-300
+                         text-[1.35rem] sm:text-5xl md:text-7xl lg:text-8xl
+                         tracking-wider sm:tracking-widest
+                         drop-shadow-[0_0_8px_rgba(245,158,11,0.6)]"
             >
               {word}
             </motion.span>
@@ -85,7 +86,7 @@ export function HeroSection() {
           animate={{ scaleX: 1, opacity: 1 }}
           transition={{ duration: 1.2, delay: 1.2, ease: [0.22, 1, 0.36, 1] }}
           style={{ y: titleY }}
-          className="w-16 sm:w-24 h-px bg-gradient-to-r from-transparent via-primary to-transparent mb-5 sm:mb-6"
+          className="w-16 sm:w-24 h-px bg-gradient-to-r from-transparent via-primary to-transparent mb-3 sm:mb-6"
         />
 
         {/* Subtitle */}
@@ -94,7 +95,7 @@ export function HeroSection() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 1.5, ease: [0.22, 1, 0.36, 1] }}
           style={{ y: subtitleY }}
-          className="text-xs sm:text-sm md:text-base font-light tracking-[0.35em] text-foreground/60 mb-10 sm:mb-12 uppercase"
+          className="text-[9px] sm:text-sm md:text-base font-light tracking-[0.35em] text-amber-200/70 mb-6 sm:mb-12 uppercase"
         >
           From Land to Legacy
         </motion.p>
@@ -105,7 +106,7 @@ export function HeroSection() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 1.85, ease: [0.22, 1, 0.36, 1] }}
           style={{ y: subtitleY }}
-          className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto flex-wrap justify-center"
+          className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto flex-wrap justify-center px-4 sm:px-0"
         >
           <Button
             asChild
