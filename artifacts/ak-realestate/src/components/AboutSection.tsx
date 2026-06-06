@@ -72,7 +72,7 @@ export function AboutSection() {
         {/* Stats + Statement grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 sm:gap-16 mb-16 sm:mb-20 items-start">
           {/* Stats */}
-          <div className="grid grid-cols-2 gap-6 sm:gap-10">
+          <div className="grid grid-cols-2 gap-8 sm:gap-10">
             {stats.map((stat, idx) => (
               <motion.div
                 key={stat.label}

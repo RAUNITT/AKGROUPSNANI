@@ -86,7 +86,7 @@ export function PropertySection() {
                           <img
                             src={prop.images[0]}
                             alt={prop.title}
-                            className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105 brightness-75 group-hover:brightness-90"
+                            className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105 brightness-90 group-hover:brightness-100"
                           />
                         ) : (
                           <div className="w-full h-full bg-white/5 flex items-center justify-center text-muted-foreground/30 text-xs">No image</div>
